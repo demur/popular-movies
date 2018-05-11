@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -37,6 +38,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler {
 
     private RecyclerView mRecyclerView;
+    private final String LAYOUT_MANAGER_STATE_KEY = "layout_manager_state";
+    private final String MOVIE_SET_KEY = "movie_set";
+    private Parcelable mLayoutManagerState;
+    private MovieSet mMovieSet;
     private RecyclerView.LayoutManager mLayoutManager;
     private MoviesAdapter mMovieAdapter;
     private SharedPreferences mSharedPrefs;
@@ -89,7 +94,15 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
         mClient = retrofit.create(TMDbClient.class);
 
-        populateRecycleView();
+        if (null != mMovieSet || (null != savedInstanceState
+                && savedInstanceState.containsKey(MOVIE_SET_KEY)
+                && null != savedInstanceState.getSerializable(MOVIE_SET_KEY))) {
+            if (null == mMovieSet)
+                mMovieSet = (MovieSet) savedInstanceState.getSerializable(MOVIE_SET_KEY);
+            mMovieAdapter.swapMovieList(mMovieSet.getMovies());
+        } else {
+            populateRecycleView();
+        }
     }
 
     public void populateRecycleView() {
@@ -112,7 +125,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
             public void onResponse(Call<MovieSet> call, retrofit2.Response<MovieSet> response) {
                 mLoadingIndicator.setVisibility(View.INVISIBLE);
                 if (response.code() == 200) {
-                    mMovieAdapter.swapMovieList(response.body().getMovies());
+                    mMovieSet = response.body();
+                    mMovieAdapter.swapMovieList(mMovieSet.getMovies());
                     mRecyclerView.scrollToPosition(0);
                     mRecyclerView.setVisibility(View.VISIBLE);
                 } else {
@@ -139,6 +153,35 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                 mStatusIcon.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable(LAYOUT_MANAGER_STATE_KEY, mLayoutManager.onSaveInstanceState());
+        outState.putSerializable(MOVIE_SET_KEY, mMovieSet);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (null != savedInstanceState) {
+            if (savedInstanceState.containsKey(LAYOUT_MANAGER_STATE_KEY)
+                    && null != savedInstanceState.getSerializable(LAYOUT_MANAGER_STATE_KEY)) {
+                mLayoutManagerState = savedInstanceState.getParcelable(LAYOUT_MANAGER_STATE_KEY);
+            }
+            if (savedInstanceState.containsKey(MOVIE_SET_KEY)
+                    && null != savedInstanceState.getSerializable(MOVIE_SET_KEY)) {
+                mMovieSet = (MovieSet) savedInstanceState.getSerializable(MOVIE_SET_KEY);
+            }
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (null != mLayoutManagerState)
+            mLayoutManager.onRestoreInstanceState(mLayoutManagerState);
     }
 
     @Override
