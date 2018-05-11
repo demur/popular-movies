@@ -3,12 +3,13 @@ package com.udacity.demur.popularmovies.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-import java.util.List;
+import java.io.Serializable;
+import java.util.ArrayList;
 
-public class MovieSet {
+public class MovieSet implements Serializable {
     @Expose
     @SerializedName("results")
-    private List<Movie> results;
+    private ArrayList<Movie> results;
     @Expose
     @SerializedName("total_pages")
     private int total_pages;
@@ -19,11 +20,11 @@ public class MovieSet {
     @SerializedName("page")
     private int page;
 
-    public List<Movie> getMovies() {
+    public ArrayList<Movie> getMovies() {
         return results;
     }
 
-    public void setMovies(List<Movie> movies) {
+    public void setMovies(ArrayList<Movie> movies) {
         this.results = movies;
     }
 
