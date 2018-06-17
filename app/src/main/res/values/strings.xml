@@ -13,4 +13,16 @@
     <string name="content_description_backdrop_shot">"%1$s" movie backdrop shot</string>
     <string name="vote_average" translatable="false">%1$s/10</string>
     <string name="error_no_data_for_detail_activity">Damn!\nApp was unable to retrieve data to display</string>
+    <string name="action_sort_liked">Liked</string>
+    <string name="youtube_thumbnail" translatable="false">https://img.youtube.com/vi/%1$s/0.jpg</string>
+    <string name="youtube_link" translatable="false">https://www.youtube.com/watch?v=%1$s</string>
+    <string name="action_share">Share</string>
+    <string name="nothing_to_share">Unfortunately there is nothing to share at the moment ;-(</string>
+    <string name="share_youtube_link_choose_title">Share YouTube link…</string>
+    <string name="content_description_favorite_outlined">Heart outlined shape button. Press to like this movie</string>
+    <string name="content_description_favorite_filled">Heart filled shape button. This movie is liked. Press to unlike it</string>
+    <string name="first_line_indent" translatable="false">\t\t%1$s</string>
+    <string name="tab_title_overview">Overview</string>
+    <string name="tab_title_videos">Videos</string>
+    <string name="tab_title_reviews">Reviews</string>
 </resources>
