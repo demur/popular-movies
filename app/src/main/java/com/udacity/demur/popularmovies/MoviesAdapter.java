@@ -1,6 +1,8 @@
 package com.udacity.demur.popularmovies;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
+import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -10,18 +12,24 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
+import com.udacity.demur.popularmovies.database.TMDBLikedDatabase;
 import com.udacity.demur.popularmovies.model.Movie;
 
 import java.util.List;
+import java.util.Map;
 
 class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
     private final Context mContext;
     private final MoviesAdapterOnClickHandler mClickHandler;
     private List<Movie> movieList;
+    private TMDBLikedDatabase mDb;
+    private Map<Integer, byte[]> mPosterMap;
 
     MoviesAdapter(@NonNull Context context, MoviesAdapterOnClickHandler clickHandler) {
         this.mContext = context;
         this.mClickHandler = clickHandler;
+        mDb = TMDBLikedDatabase.getInstance(context);
+        setHasStableIds(false);
     }
 
     @NonNull
@@ -33,12 +41,25 @@ class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterView
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MoviesAdapterViewHolder holder, int position) {
-        Movie theMovie = movieList.get(position);
-        Picasso.get()
-                .load("http://image.tmdb.org/t/p/w185/" + theMovie.getPoster_path())
-                .fit()
-                .into(holder.ivPoster);
+    public void onBindViewHolder(@NonNull final MoviesAdapterViewHolder holder, int position) {
+        final Movie theMovie = movieList.get(position);
+        if (!theMovie.isLiked()) {
+            Picasso.get()
+                    .load("http://image.tmdb.org/t/p/w185/" + theMovie.getPoster_path())
+                    .fit()
+                    .into(holder.ivPoster);
+        } else {
+            if (mPosterMap == null && ViewModelProviders.of((MainActivity) mContext).get(LikedViewModel.class).getPosterMap() != null) {
+                mPosterMap = ViewModelProviders.of((MainActivity) mContext).get(LikedViewModel.class).getPosterMap();
+            }
+            if (mPosterMap != null && mPosterMap.containsKey(theMovie.getId()) && mPosterMap.get(theMovie.getId()) != null) {
+                holder.ivPoster.setImageBitmap(BitmapFactory.decodeByteArray(
+                        mPosterMap.get(theMovie.getId()),
+                        0,
+                        mPosterMap.get(theMovie.getId()).length
+                ));
+            }
+        }
         holder.tvTitle.setText(theMovie.getTitle());
         holder.ivPoster.setContentDescription("\"" + theMovie.getTitle() + "\" movie poster");
     }
@@ -49,7 +70,13 @@ class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterView
         return movieList.size();
     }
 
+    @Override
+    public long getItemId(int position) {
+        return movieList.get(position).getId();
+    }
+
     void swapMovieList(List<Movie> movieList) {
+        mPosterMap = null;
         this.movieList = movieList;
         notifyDataSetChanged();
     }
