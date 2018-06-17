@@ -1,4 +1,4 @@
-# Popular Movies, Stage 1
+# Popular Movies, Stage 1 & Stage 2
 Udacity Grow with Google Android Developer Nanodegree Program
 
 ## How to Work with the project
