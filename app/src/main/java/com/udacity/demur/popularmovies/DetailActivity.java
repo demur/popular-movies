@@ -1,54 +1,295 @@
 package com.udacity.demur.popularmovies;
 
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.NavUtils;
+import android.support.v4.app.ShareCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
+import com.udacity.demur.popularmovies.database.LikedEntry;
+import com.udacity.demur.popularmovies.database.TMDBLikedDatabase;
 import com.udacity.demur.popularmovies.model.Movie;
+import com.udacity.demur.popularmovies.model.ReviewSet;
+import com.udacity.demur.popularmovies.model.Video;
+import com.udacity.demur.popularmovies.model.VideoSet;
 
+import java.util.List;
 import java.util.Objects;
 
 public class DetailActivity extends AppCompatActivity {
 
+    private static final String THE_MOVIE_KEY = "the_movie";
+    private static final String VIDEO_SET_KEY = "video_set";
+    private static final String REVIEW_SET_KEY = "review_set";
+    private static final String TAG = DetailActivity.class.getSimpleName();
+    ImageButton mFavorite;
+    private TMDBLikedDatabase mDb;
+    private Movie theMovie;
+    private ImageView ivDetailPoster;
+    private ImageView ivDetailBackdrop;
+    private DetailsPagerAdapter mDetailsPagerAdapter;
+    private ViewPager mViewPager;
+    private VideoSet mVideoSet;
+    private ReviewSet mReviewSet;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_detail);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
-        }
 
         if (getIntent().hasExtra("movie")) {
-            Movie theMovie = (Movie) getIntent().getSerializableExtra("movie");
-            ImageView ivDetailPoster = findViewById(R.id.iv_detail_poster);
-            ImageView ivDetailBackdrop = findViewById(R.id.iv_detail_backdrop);
+
+            mDb = TMDBLikedDatabase.getInstance(getApplicationContext());
+
+            setContentView(R.layout.activity_detail);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+            }
+
+            theMovie = (Movie) getIntent().getSerializableExtra("movie");
+            ivDetailPoster = findViewById(R.id.iv_detail_poster);
+            ivDetailBackdrop = findViewById(R.id.iv_detail_backdrop);
             TextView tvDetailTitle = findViewById(R.id.tv_detail_title);
-            TextView tvOverview = findViewById(R.id.tv_overview);
             TextView tvReleaseDate = findViewById(R.id.tv_release_date);
             TextView tvVoteAverage = findViewById(R.id.tv_vote_average);
 
-            Picasso.get().load("http://image.tmdb.org/t/p/w185/" + theMovie.getPoster_path())
-                    .fit().into(ivDetailPoster);
-            Picasso.get().load("http://image.tmdb.org/t/p/w780/" + theMovie.getBackdrop_path())
-                    .into(ivDetailBackdrop);
+            mFavorite = findViewById(R.id.ib_favorite);
+
+            // Check if this Activity was started from Liked list
+            if (theMovie.isLiked()) {
+                mFavorite.setSelected(true);
+                mFavorite.setContentDescription(getString(R.string.content_description_favorite_filled));
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        final LikedEntry likedEntry = mDb.likedDao().loadLikedById(theMovie.getId());
+                        if (likedEntry.getReviewSetJson() != null) {
+                            mReviewSet = new Gson().fromJson(likedEntry.getReviewSetJson(), ReviewSet.class);
+                        }
+                        if (likedEntry.getVideoSetJson() != null) {
+                            mVideoSet = new Gson().fromJson(likedEntry.getVideoSetJson(), VideoSet.class);
+                        }
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (likedEntry.getPoster() != null) {
+                                    ivDetailPoster.setImageBitmap(BitmapFactory.decodeByteArray(
+                                            likedEntry.getPoster(),
+                                            0,
+                                            likedEntry.getPoster().length
+                                    ));
+                                }
+                                if (likedEntry.getBackdrop() != null) {
+                                    ivDetailBackdrop.setImageBitmap(BitmapFactory.decodeByteArray(
+                                            likedEntry.getBackdrop(),
+                                            0,
+                                            likedEntry.getBackdrop().length
+                                    ));
+                                }
+                            }
+                        });
+                    }
+                });
+            } else {
+                Picasso.get().load("http://image.tmdb.org/t/p/w185/" + theMovie.getPoster_path())
+                        .fit().into(ivDetailPoster);
+                Picasso.get().load("http://image.tmdb.org/t/p/w780/" + theMovie.getBackdrop_path())
+                        .into(ivDetailBackdrop);
+                // This Activity was not started from Liked list, but lets check if the movie is liked
+                AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        final List<LikedEntry> likedEntries = mDb.likedDao().checkLikedById(theMovie.getId());
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (likedEntries.size() > 0) {
+                                    mFavorite.setSelected(true);
+                                    mFavorite.setContentDescription(getString(R.string.content_description_favorite_filled));
+                                }
+                            }
+                        });
+                    }
+                });
+            }
             tvDetailTitle.setText(theMovie.getTitle());
             ivDetailPoster.setContentDescription(getString(R.string.content_description_poster, theMovie.getTitle()));
             ivDetailBackdrop.setContentDescription(getString(R.string.content_description_backdrop_shot, theMovie.getTitle()));
-            tvOverview.setText("\t\t" + theMovie.getOverview());
-            tvReleaseDate.setText(theMovie.getRelease_date());
-            tvVoteAverage.setText(getString(R.string.vote_average, String.valueOf(theMovie.getVote_average())));
+            if (null != tvReleaseDate) {
+                tvReleaseDate.setText(theMovie.getRelease_date());
+            }
+            if (null != tvVoteAverage) {
+                tvVoteAverage.setText(getString(R.string.vote_average, String.valueOf(theMovie.getVote_average())));
+            }
+
+            mViewPager = findViewById(R.id.vp_container);
+            setupViewPager(mViewPager);
+
+            TabLayout tabLayout = findViewById(R.id.tabs);
+            tabLayout.setupWithViewPager(mViewPager);
         } else {
             Toast toast = Toast.makeText(getApplicationContext(), R.string.error_no_data_for_detail_activity, Toast.LENGTH_LONG);
             TextView v = toast.getView().findViewById(android.R.id.message);
             if (null != v) v.setGravity(Gravity.CENTER);
             toast.show();
             NavUtils.navigateUpFromSameTask(this);
+        }
+    }
+
+    public void ibFavoriteClickHandler(View target) {
+        if (!mFavorite.isSelected()) {
+            final LikedEntry likedEntry = new LikedEntry(
+                    theMovie.getId(),
+                    theMovie.getTitle(),
+                    theMovie.getVote_average(),
+                    ivDetailPoster.getDrawable() != null
+                            ? Utilities.getBitmapAsByteArray(((BitmapDrawable) ivDetailPoster.getDrawable()).getBitmap())
+                            : null,
+                    ivDetailBackdrop.getDrawable() != null
+                            ? Utilities.getBitmapAsByteArray(((BitmapDrawable) ivDetailBackdrop.getDrawable()).getBitmap())
+                            : null,
+                    new Gson().toJson(theMovie),
+                    mVideoSet != null
+                            ? new Gson().toJson(mVideoSet)
+                            : null,
+                    mReviewSet != null
+                            ? new Gson().toJson(mReviewSet)
+                            : null
+            );
+            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    mDb.likedDao().insertLiked(likedEntry);
+                }
+            });
+            theMovie.setLiked(true);
+            mFavorite.setContentDescription(getString(R.string.content_description_favorite_filled));
+        } else {
+            final int id = theMovie.getId();
+            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    mDb.likedDao().deleteLikedById(id);
+                }
+            });
+            theMovie.setLiked(false);
+            mFavorite.setContentDescription(getString(R.string.content_description_favorite_outlined));
+        }
+        mFavorite.setSelected(!mFavorite.isSelected());
+    }
+
+    private void setupViewPager(ViewPager viewPager) {
+        mDetailsPagerAdapter = new DetailsPagerAdapter(getSupportFragmentManager());
+        mDetailsPagerAdapter.addFragment(new DetailOverviewFragment(), getString(R.string.tab_title_overview));
+        mDetailsPagerAdapter.addFragment(new DetailVideosFragment(), getString(R.string.tab_title_videos));
+        mDetailsPagerAdapter.addFragment(new DetailReviewsFragment(), getString(R.string.tab_title_reviews));
+        viewPager.setAdapter(mDetailsPagerAdapter);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putSerializable(THE_MOVIE_KEY, theMovie);
+        outState.putSerializable(REVIEW_SET_KEY, mReviewSet);
+        outState.putSerializable(VIDEO_SET_KEY, mVideoSet);
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        if (null != savedInstanceState) {
+            if (savedInstanceState.containsKey(THE_MOVIE_KEY)
+                    && null != savedInstanceState.getSerializable(THE_MOVIE_KEY)) {
+                theMovie = (Movie) savedInstanceState.getSerializable(THE_MOVIE_KEY);
+            }
+            if (savedInstanceState.containsKey(REVIEW_SET_KEY)
+                    && null != savedInstanceState.getSerializable(REVIEW_SET_KEY)) {
+                mReviewSet = (ReviewSet) savedInstanceState.getSerializable(REVIEW_SET_KEY);
+            }
+            if (savedInstanceState.containsKey(VIDEO_SET_KEY)
+                    && null != savedInstanceState.getSerializable(VIDEO_SET_KEY)) {
+                mVideoSet = (VideoSet) savedInstanceState.getSerializable(VIDEO_SET_KEY);
+            }
+        }
+    }
+
+    private void shareYouTubeLink() {
+        if (null != mVideoSet && mVideoSet.getVideos().size() > 0) {
+            for (Video video : mVideoSet.getVideos()) {
+                if (video.getSite().equalsIgnoreCase("YouTube")) {
+                    ShareCompat.IntentBuilder.from(this)
+                            .setType("text/plain")
+                            .setText(video.getName() + " " + video.getType() + "\n"
+                                    + getString(R.string.youtube_link, video.getKey()))
+                            .setChooserTitle(R.string.share_youtube_link_choose_title)
+                            .startChooser();
+                    return;
+                }
+            }
+        }
+        Toast.makeText(DetailActivity.this, R.string.nothing_to_share, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.detail, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_share) {
+            shareYouTubeLink();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    public Movie getMovie() {
+        return theMovie;
+    }
+
+    public VideoSet getVideoSet() {
+        return mVideoSet;
+    }
+
+    public void setVideoSet(VideoSet videoSet) {
+        mVideoSet = videoSet;
+        if (theMovie.isLiked()) {
+            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    mDb.likedDao().updateVideoSetJson(theMovie.getId(), new Gson().toJson(mVideoSet));
+                }
+            });
+        }
+    }
+
+    public ReviewSet getReviewSet() {
+        return mReviewSet;
+    }
+
+    public void setReviewSet(ReviewSet reviewSet) {
+        mReviewSet = reviewSet;
+        if (theMovie.isLiked()) {
+            AppExecutors.getInstance().diskIO().execute(new Runnable() {
+                @Override
+                public void run() {
+                    mDb.likedDao().updateReviewSetJson(theMovie.getId(), new Gson().toJson(mReviewSet));
+                }
+            });
         }
     }
 }
