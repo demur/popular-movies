@@ -28,6 +28,17 @@ public class MovieSet implements Serializable {
         this.results = movies;
     }
 
+    public void addMovies(ArrayList<Movie> movies) {
+        this.results.addAll(movies);
+    }
+
+    public void addMovies(MovieSet movieSet) {
+        this.results.addAll(movieSet.getMovies());
+        this.total_pages = movieSet.getTotal_pages();
+        this.total_results = movieSet.getTotal_results();
+        this.page = movieSet.getPage();
+    }
+
     public int getTotal_pages() {
         return total_pages;
     }

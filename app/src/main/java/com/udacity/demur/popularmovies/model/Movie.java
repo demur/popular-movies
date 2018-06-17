@@ -50,6 +50,10 @@ public class Movie implements Serializable {
     @SerializedName("vote_count")
     private int vote_count;
 
+    @Expose
+    @SerializedName("liked")
+    private boolean liked;
+
     public String getRelease_date() {
         return release_date;
     }
@@ -160,5 +164,13 @@ public class Movie implements Serializable {
 
     public void setVote_count(int vote_count) {
         this.vote_count = vote_count;
+    }
+
+    public boolean isLiked() {
+        return liked;
+    }
+
+    public void setLiked(boolean liked) {
+        this.liked = liked;
     }
 }
