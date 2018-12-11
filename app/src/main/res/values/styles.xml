@@ -11,9 +11,7 @@
         <item name="android:layout_height">@dimen/iv_detail_backdrop_height</item>
         <item name="android:adjustViewBounds">true</item>
         <item name="android:background">@android:color/background_dark</item>
-        <item name="android:contentDescription" />
-        <item name="android:elevation" tools:ignore="NewApi">@dimen/iv_detail_backdrop_elevation
-        </item>
+        <item name="android:elevation" tools:ignore="NewApi">@dimen/iv_detail_backdrop_elevation</item>
         <item name="android:scaleType">centerCrop</item>
         <item name="layout_constraintEnd_toEndOf">parent</item>
         <item name="layout_constraintLeft_toLeftOf">parent</item>
@@ -48,14 +46,10 @@
         <item name="android:layout_width">@dimen/iv_detail_poster_width</item>
         <item name="android:layout_height">@dimen/iv_detail_poster_height</item>
         <item name="android:layout_marginLeft">@dimen/iv_detail_poster_margin_left</item>
-        <item name="android:layout_marginStart" tools:ignore="NewApi">
-            @dimen/iv_detail_poster_margin_left
-        </item>
+        <item name="android:layout_marginStart" tools:ignore="NewApi">@dimen/iv_detail_poster_margin_left</item>
         <item name="android:adjustViewBounds">true</item>
         <item name="android:background">@android:color/background_dark</item>
-        <item name="android:contentDescription" />
-        <item name="android:elevation" tools:ignore="NewApi">@dimen/iv_detail_poster_elevation
-        </item>
+        <item name="android:elevation" tools:ignore="NewApi">@dimen/iv_detail_poster_elevation</item>
         <item name="layout_constraintDimensionRatio">H,2:3</item>
         <item name="layout_constraintLeft_toLeftOf">parent</item>
         <item name="layout_constraintStart_toStartOf">parent</item>

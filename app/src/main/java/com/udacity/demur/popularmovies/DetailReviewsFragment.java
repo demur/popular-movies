@@ -1,17 +1,16 @@
 package com.udacity.demur.popularmovies;
 
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
+import com.udacity.demur.popularmovies.databinding.DetailReviewsFragmentBinding;
 import com.udacity.demur.popularmovies.model.ReviewSet;
 import com.udacity.demur.popularmovies.service.RetrofitClient;
 import com.udacity.demur.popularmovies.service.TMDbClient;
@@ -26,36 +25,29 @@ import retrofit2.Response;
 public class DetailReviewsFragment extends Fragment {
     private static final String TAG = DetailReviewsFragment.class.getSimpleName();
     private static final String REVIEW_SET_KEY = "review_set";
-    private RecyclerView mReviewsRecyclerView;
-    private TextView mReviewsStatusMessage;
-    private ImageView mReviewsStatusIcon;
-    private ProgressBar mReviewsLoadingIndicator;
     private LinearLayoutManager mReviewsLayoutManager;
     private ReviewsAdapter mReviewAdapter;
     private ReviewSet mReviewSet;
     private TMDbClient mReviewClient;
+    DetailReviewsFragmentBinding mBinding;
 
     public DetailReviewsFragment() {
         // Required empty public constructor
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.detail_reviews_fragment, container, false);
+        mBinding = DataBindingUtil.inflate(inflater, R.layout.detail_reviews_fragment, container, false);
 
-        mReviewsLoadingIndicator = view.findViewById(R.id.pb_reviews_loading_indicator);
-        mReviewsStatusIcon = view.findViewById(R.id.iv_reviews_message_icon);
-        mReviewsStatusMessage = view.findViewById(R.id.tv_reviews_message);
-        mReviewsRecyclerView = view.findViewById(R.id.rv_reviews);
-        mReviewsRecyclerView.setHasFixedSize(false);
+        mBinding.rvReviews.setHasFixedSize(false);
         mReviewsLayoutManager = new LinearLayoutManager(getActivity());
-        mReviewsRecyclerView.setLayoutManager(mReviewsLayoutManager);
+        mBinding.rvReviews.setLayoutManager(mReviewsLayoutManager);
         mReviewAdapter = new ReviewsAdapter(getActivity());
-        mReviewsRecyclerView.setAdapter(mReviewAdapter);
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mReviewsRecyclerView.getContext(),
+        mBinding.rvReviews.setAdapter(mReviewAdapter);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mBinding.rvReviews.getContext(),
                 mReviewsLayoutManager.getOrientation());
-        mReviewsRecyclerView.addItemDecoration(dividerItemDecoration);
+        mBinding.rvReviews.addItemDecoration(dividerItemDecoration);
         if (null == mReviewSet) {
             mReviewSet = ((DetailActivity) getActivity()).getReviewSet();
         }
@@ -68,47 +60,47 @@ public class DetailReviewsFragment extends Fragment {
         } else {
             populateReviewsRecycleView();
         }
-        return view;
+        return mBinding.getRoot();
     }
 
     private void populateReviewsRecycleView() {
         mReviewClient = RetrofitClient.getInstance(getActivity().getApplicationContext());
-        mReviewsStatusMessage.setVisibility(View.INVISIBLE);
-        mReviewsStatusIcon.setVisibility(View.INVISIBLE);
-        mReviewsLoadingIndicator.setVisibility(View.VISIBLE);
-        mReviewsRecyclerView.setVisibility(View.INVISIBLE);
+        mBinding.tvReviewsMessage.setVisibility(View.INVISIBLE);
+        mBinding.ivReviewsMessageIcon.setVisibility(View.INVISIBLE);
+        mBinding.pbReviewsLoadingIndicator.setVisibility(View.VISIBLE);
+        mBinding.rvReviews.setVisibility(View.INVISIBLE);
         mReviewClient.getReviews(((DetailActivity) getActivity()).getMovie().getId()).enqueue(new Callback<ReviewSet>() {
             @Override
-            public void onResponse(Call<ReviewSet> call, Response<ReviewSet> response) {
-                mReviewsLoadingIndicator.setVisibility(View.INVISIBLE);
+            public void onResponse(@NonNull Call<ReviewSet> call, @NonNull Response<ReviewSet> response) {
+                mBinding.pbReviewsLoadingIndicator.setVisibility(View.INVISIBLE);
                 if (response.code() == 200) {
                     mReviewSet = response.body();
                     ((DetailActivity) getActivity()).setReviewSet(mReviewSet);
                     mReviewAdapter.swapReviewList(mReviewSet.getReviews());
-                    mReviewsRecyclerView.scrollToPosition(0);
-                    mReviewsRecyclerView.setVisibility(View.VISIBLE);
+                    mBinding.rvReviews.scrollToPosition(0);
+                    mBinding.rvReviews.setVisibility(View.VISIBLE);
                 } else {
-                    mReviewsStatusIcon.setImageResource(R.drawable.ic_error_outline);
-                    mReviewsStatusMessage.setText(R.string.error_unexpected_response);
-                    mReviewsRecyclerView.setVisibility(View.INVISIBLE);
-                    mReviewsStatusMessage.setVisibility(View.VISIBLE);
-                    mReviewsStatusIcon.setVisibility(View.VISIBLE);
+                    mBinding.ivReviewsMessageIcon.setImageResource(R.drawable.ic_error_outline);
+                    mBinding.tvReviewsMessage.setText(R.string.error_unexpected_response);
+                    mBinding.rvReviews.setVisibility(View.INVISIBLE);
+                    mBinding.tvReviewsMessage.setVisibility(View.VISIBLE);
+                    mBinding.ivReviewsMessageIcon.setVisibility(View.VISIBLE);
                 }
             }
 
             @Override
-            public void onFailure(Call<ReviewSet> call, Throwable t) {
-                if (Utilities.isOnline(getActivity().getApplicationContext())) {
-                    mReviewsStatusIcon.setImageResource(R.drawable.ic_error);
-                    mReviewsStatusMessage.setText(R.string.error_problem_connecting);
+            public void onFailure(@NonNull Call<ReviewSet> call, @NonNull Throwable t) {
+                if (Utilities.isOnline()) {
+                    mBinding.ivReviewsMessageIcon.setImageResource(R.drawable.ic_error);
+                    mBinding.tvReviewsMessage.setText(R.string.error_problem_connecting);
                 } else {
-                    mReviewsStatusIcon.setImageResource(R.drawable.ic_warning);
-                    mReviewsStatusMessage.setText(R.string.error_no_connection);
+                    mBinding.ivReviewsMessageIcon.setImageResource(R.drawable.ic_warning);
+                    mBinding.tvReviewsMessage.setText(R.string.error_no_connection);
                 }
-                mReviewsLoadingIndicator.setVisibility(View.INVISIBLE);
-                mReviewsRecyclerView.setVisibility(View.INVISIBLE);
-                mReviewsStatusMessage.setVisibility(View.VISIBLE);
-                mReviewsStatusIcon.setVisibility(View.VISIBLE);
+                mBinding.pbReviewsLoadingIndicator.setVisibility(View.INVISIBLE);
+                mBinding.rvReviews.setVisibility(View.INVISIBLE);
+                mBinding.tvReviewsMessage.setVisibility(View.VISIBLE);
+                mBinding.ivReviewsMessageIcon.setVisibility(View.VISIBLE);
             }
         });
     }

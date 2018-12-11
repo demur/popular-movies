@@ -1,12 +1,16 @@
 package com.udacity.demur.popularmovies.model;
 
+import android.databinding.BaseObservable;
+import android.databinding.Bindable;
+
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.udacity.demur.popularmovies.BR;
 
 import java.io.Serializable;
 import java.util.List;
 
-public class Movie implements Serializable {
+public class Movie extends BaseObservable implements Serializable {
     @Expose
     @SerializedName("release_date")
     private String release_date;
@@ -166,11 +170,13 @@ public class Movie implements Serializable {
         this.vote_count = vote_count;
     }
 
+    @Bindable
     public boolean isLiked() {
         return liked;
     }
 
     public void setLiked(boolean liked) {
         this.liked = liked;
+        notifyPropertyChanged(BR.liked);
     }
 }

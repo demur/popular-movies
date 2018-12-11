@@ -1,6 +1,7 @@
 package com.udacity.demur.popularmovies.service;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.udacity.demur.popularmovies.BuildConfig;
@@ -16,18 +17,18 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
-    private static final String LOG_TAG = RetrofitClient.class.getSimpleName();
+    private static final String TAG = RetrofitClient.class.getSimpleName();
     private static final Object LOCK = new Object();
     private static TMDbClient sInstance;
 
     public static TMDbClient getInstance(Context context) {
         if (sInstance == null) {
             synchronized (LOCK) {
-                Log.d(LOG_TAG, "Creating new RetrofitClient instance");
+                Log.d(TAG, "Creating new RetrofitClient instance");
                 OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
                 httpClient.addInterceptor(new Interceptor() {
                     @Override
-                    public Response intercept(Interceptor.Chain chain) throws IOException {
+                    public Response intercept(@NonNull Interceptor.Chain chain) throws IOException {
                         Request original = chain.request();
                         HttpUrl originalHttpUrl = original.url();
 
@@ -52,7 +53,7 @@ public class RetrofitClient {
                 sInstance = retrofit.create(TMDbClient.class);
             }
         }
-        Log.d(LOG_TAG, "Getting the RetrofitClient instance");
+        Log.d(TAG, "Getting the RetrofitClient instance");
         return sInstance;
     }
 }

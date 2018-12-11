@@ -8,7 +8,7 @@ import android.util.Log;
 
 @Database(entities = {LikedEntry.class}, version = 1, exportSchema = false)
 public abstract class TMDBLikedDatabase extends RoomDatabase {
-    private static final String LOG_TAG = TMDBLikedDatabase.class.getSimpleName();
+    private static final String TAG = TMDBLikedDatabase.class.getSimpleName();
     private static final Object LOCK = new Object();
     private static final String DATABASE_NAME = "TMDB_liked";
     private static TMDBLikedDatabase sInstance;
@@ -16,13 +16,13 @@ public abstract class TMDBLikedDatabase extends RoomDatabase {
     public static TMDBLikedDatabase getInstance(Context context) {
         if (sInstance == null) {
             synchronized (LOCK) {
-                Log.d(LOG_TAG, "Creating new database instance");
+                Log.d(TAG, "Creating new database instance");
                 sInstance = Room.databaseBuilder(context.getApplicationContext(),
                         TMDBLikedDatabase.class, TMDBLikedDatabase.DATABASE_NAME)
                         .build();
             }
         }
-        Log.d(LOG_TAG, "Getting the database instance");
+        Log.d(TAG, "Getting the database instance");
         return sInstance;
     }
 

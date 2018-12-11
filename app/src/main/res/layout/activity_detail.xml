@@ -1,75 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     tools:context=".DetailActivity">
 
-    <ImageView
-        android:id="@+id/iv_detail_backdrop"
-        style="@style/DetailBackDrop" />
+    <data>
+        <variable
+            name="movie"
+            type="com.udacity.demur.popularmovies.model.Movie" />
+    </data>
 
-    <TextView
-        android:id="@+id/tv_detail_title"
-        style="@style/DetailMovieTitle"
-        tools:text="Once Upon a Time in America" />
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <ImageView
-        android:id="@+id/iv_detail_poster"
-        style="@style/DetailPoster" />
+        <ImageView
+            android:id="@+id/iv_detail_backdrop"
+            style="@style/DetailBackDrop"
+            android:contentDescription="@{@string/content_description_backdrop_shot(movie.title)}" />
 
-    <android.support.v7.widget.AppCompatImageButton
-        android:id="@+id/ib_favorite"
-        style="@style/FavoriteImageButton" />
+        <TextView
+            android:id="@+id/tv_detail_title"
+            style="@style/DetailMovieTitle"
+            android:text="@{movie.title}"
+            tools:text="Once Upon a Time in America" />
 
-    <TextView
-        android:id="@+id/tv_release_date_label"
-        style="@style/Label"
-        android:layout_marginTop="0dp"
-        android:text="@string/release_date_label"
-        app:layout_constraintStart_toStartOf="@id/iv_detail_poster"
-        app:layout_constraintTop_toBottomOf="@id/ib_favorite" />
+        <ImageView
+            android:id="@+id/iv_detail_poster"
+            style="@style/DetailPoster"
+            android:contentDescription="@{@string/content_description_poster(movie.title)}" />
 
-    <TextView
-        android:id="@+id/tv_release_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/content_tv_margin_start"
-        android:layout_marginStart="@dimen/content_tv_margin_start"
-        android:layout_marginTop="@dimen/content_tv_margin_top"
-        android:textColor="@android:color/black"
-        android:textSize="@dimen/content_tv_text_size"
-        app:layout_constraintStart_toStartOf="@id/tv_release_date_label"
-        app:layout_constraintTop_toBottomOf="@id/tv_release_date_label"
-        tools:text="2019-06-09" />
+        <android.support.v7.widget.AppCompatImageButton
+            android:id="@+id/ib_favorite"
+            style="@style/FavoriteImageButton"
+            android:contentDescription="@{movie.liked?@string/content_description_favorite_filled:@string/content_description_favorite_outlined}" />
 
-    <TextView
-        android:id="@+id/tv_vote_average_label"
-        style="@style/Label"
-        android:layout_marginTop="@dimen/labels_margin_top"
-        android:text="@string/user_rating_label"
-        app:layout_constraintStart_toStartOf="@id/tv_release_date_label"
-        app:layout_constraintTop_toBottomOf="@id/tv_release_date" />
+        <TextView
+            android:id="@+id/tv_release_date_label"
+            style="@style/Label"
+            android:layout_marginTop="0dp"
+            android:text="@string/release_date_label"
+            app:layout_constraintStart_toStartOf="@id/iv_detail_poster"
+            app:layout_constraintTop_toBottomOf="@id/ib_favorite" />
 
-    <TextView
-        android:id="@+id/tv_vote_average"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/content_tv_margin_top"
-        android:textColor="@android:color/black"
-        android:textSize="@dimen/content_tv_text_size"
-        app:layout_constraintStart_toStartOf="@id/tv_release_date"
-        app:layout_constraintTop_toBottomOf="@id/tv_vote_average_label"
-        tools:text="9.3/10" />
+        <TextView
+            android:id="@+id/tv_release_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/content_tv_margin_start"
+            android:layout_marginLeft="@dimen/content_tv_margin_start"
+            android:layout_marginTop="@dimen/content_tv_margin_top"
+            android:text="@{movie.release_date}"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/content_tv_text_size"
+            app:layout_constraintStart_toStartOf="@id/tv_release_date_label"
+            app:layout_constraintTop_toBottomOf="@id/tv_release_date_label"
+            tools:text="2019-06-09" />
 
-    <View style="@style/TabsBackground" />
+        <TextView
+            android:id="@+id/tv_vote_average_label"
+            style="@style/Label"
+            android:layout_marginTop="@dimen/labels_margin_top"
+            android:text="@string/user_rating_label"
+            app:layout_constraintStart_toStartOf="@id/tv_release_date_label"
+            app:layout_constraintTop_toBottomOf="@id/tv_release_date" />
 
-    <android.support.design.widget.TabLayout
-        android:id="@+id/tabs"
-        style="@style/TabLayout" />
+        <TextView
+            android:id="@+id/tv_vote_average"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/content_tv_margin_top"
+            android:text="@{@string/vote_average(movie.vote_average)}"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/content_tv_text_size"
+            app:layout_constraintStart_toStartOf="@id/tv_release_date"
+            app:layout_constraintTop_toBottomOf="@id/tv_vote_average_label"
+            tools:text="9.3/10" />
 
-    <android.support.v4.view.ViewPager
-        android:id="@+id/vp_container"
-        style="@style/ViewPagerContainer" />
-</android.support.constraint.ConstraintLayout>
+        <View style="@style/TabsBackground" />
+
+        <android.support.design.widget.TabLayout
+            android:id="@+id/tabs"
+            style="@style/TabLayout" />
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/vp_container"
+            style="@style/ViewPagerContainer" />
+    </android.support.constraint.ConstraintLayout>
+</layout>

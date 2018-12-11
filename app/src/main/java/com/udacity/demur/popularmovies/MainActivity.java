@@ -5,8 +5,10 @@ import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
@@ -16,13 +18,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.udacity.demur.popularmovies.database.LikedEntryJsonAndPoster;
+import com.udacity.demur.popularmovies.databinding.ActivityMainBinding;
 import com.udacity.demur.popularmovies.model.Movie;
 import com.udacity.demur.popularmovies.model.MovieSet;
 import com.udacity.demur.popularmovies.service.RetrofitClient;
@@ -37,67 +37,44 @@ import retrofit2.Call;
 import retrofit2.Callback;
 
 public class MainActivity extends AppCompatActivity implements MoviesAdapter.MoviesAdapterOnClickHandler {
-
-    private RecyclerView mRecyclerView;
+    private static final String TAG = MainActivity.class.getSimpleName();
+    ActivityMainBinding mBinding;
     private final String LAYOUT_MANAGER_STATE_KEY = "layout_manager_state";
     private final String MOVIE_SET_KEY = "movie_set";
+
+    public static final String SHARED_PREFS_NAME = "Settings";
+    public static final String SHARED_PREFS_SORT_MODE_KEY = "sort_mode";
+
+    public static final String EXTRA_MOVIE_KEY = "movie";
+
     private Parcelable mLayoutManagerState;
     private MovieSet mMovieSet;
     private RecyclerView.LayoutManager mLayoutManager;
     private MoviesAdapter mMovieAdapter;
     private SharedPreferences mSharedPrefs;
     private TMDbClient mClient;
-    private ProgressBar mLoadingIndicator;
-    private ImageView mStatusIcon;
-    private TextView mStatusMessage;
-    private static final String TAG = MainActivity.class.getSimpleName();
     private static int mGridSpanCount = 3;
     private LikedViewModel mLikedViewModel;
-    final Observer<List<LikedEntryJsonAndPoster>> likedObserver = new Observer<List<LikedEntryJsonAndPoster>>() {
-        @Override
-        public void onChanged(@Nullable final List<LikedEntryJsonAndPoster> likedJsonAndPosterEntries) {
-            Log.d(TAG, "Updating list of Liked entries from LiveData in the ViewModel");
-            if (likedJsonAndPosterEntries != null) {
-                ArrayList<Movie> movies = new ArrayList<Movie>();
-                Map<Integer, byte[]> posterMap = new HashMap<Integer, byte[]>();
-                for (LikedEntryJsonAndPoster likedEntry : likedJsonAndPosterEntries) {
-                    Movie movie = new Gson().fromJson(likedEntry.getMovieJson(), Movie.class);
-                    //movie.setBytePoster(likedEntry.getPoster());
-                    movie.setLiked(true);
-                    movies.add(movie);
-                    posterMap.put(movie.getId(), likedEntry.getPoster());
-                }
-                mMovieSet = new MovieSet();
-                mMovieSet.setMovies(movies);
-                mMovieAdapter.swapMovieList(movies);
-                mLikedViewModel.setPosterMap(posterMap);
-            }
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
-        mLoadingIndicator = findViewById(R.id.pb_loading_indicator);
-        mStatusIcon = findViewById(R.id.iv_message_icon);
-        mStatusMessage = findViewById(R.id.tv_message);
-        mRecyclerView = findViewById(R.id.recyclerView);
-        mRecyclerView.setHasFixedSize(true);
-        mSharedPrefs = getApplicationContext().getSharedPreferences("Settings", MODE_PRIVATE);
+        mSharedPrefs = getApplicationContext().getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
 
         mLikedViewModel = ViewModelProviders.of(this).get(LikedViewModel.class);
         mLayoutManager = new GridLayoutManager(this, mGridSpanCount);
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.addOnScrollListener(new InfiniteScrollListener((GridLayoutManager) mLayoutManager, this) {
+        mBinding.recyclerView.setHasFixedSize(true);
+        mBinding.recyclerView.setLayoutManager(mLayoutManager);
+        mBinding.recyclerView.addOnScrollListener(new InfiniteScrollListener((GridLayoutManager) mLayoutManager, this) {
             @Override
             public void loadNextPage(final int currentPage) {
                 // options for retrofit client
                 Map<String, String> options = new HashMap<String, String>() {{
                     put("page", String.valueOf(currentPage));
                 }};
-                switch (mSharedPrefs.getInt("sort_mode", R.id.action_sort_popular)) {
+                switch (mSharedPrefs.getInt(SHARED_PREFS_SORT_MODE_KEY, R.id.action_sort_popular)) {
                     case R.id.action_sort_top_rated:
                         requestTMDB(mClient.listTopRatedMovies(options), currentPage);
                         break;
@@ -108,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
             }
         });
         mMovieAdapter = new MoviesAdapter(this, this);
-        mRecyclerView.setAdapter(mMovieAdapter);
+        mBinding.recyclerView.setAdapter(mMovieAdapter);
 
         mClient = RetrofitClient.getInstance(getApplicationContext());
 
@@ -125,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
 
     public void populateRecycleView() {
         detachLikedViewModelObserver();
-        switch (mSharedPrefs.getInt("sort_mode", R.id.action_sort_popular)) {
+        switch (mSharedPrefs.getInt(SHARED_PREFS_SORT_MODE_KEY, R.id.action_sort_popular)) {
             case R.id.action_sort_top_rated:
                 requestTMDB(mClient.listTopRatedMovies());
                 break;
@@ -146,34 +123,34 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     // TMDB call with defined page number
     public void requestTMDB(Call<MovieSet> call, final int page) {
         if (page <= 0) {
-            mStatusMessage.setVisibility(View.INVISIBLE);
-            mStatusIcon.setVisibility(View.INVISIBLE);
-            mLoadingIndicator.setVisibility(View.VISIBLE);
-            mRecyclerView.setVisibility(View.INVISIBLE);
+            mBinding.tvMessage.setVisibility(View.INVISIBLE);
+            mBinding.ivMessageIcon.setVisibility(View.INVISIBLE);
+            mBinding.pbLoadingIndicator.setVisibility(View.VISIBLE);
+            mBinding.recyclerView.setVisibility(View.INVISIBLE);
         }
         call.enqueue(new Callback<MovieSet>() {
             @Override
-            public void onResponse(Call<MovieSet> call, retrofit2.Response<MovieSet> response) {
+            public void onResponse(@NonNull Call<MovieSet> call, @NonNull retrofit2.Response<MovieSet> response) {
                 if (page <= 0) {
-                    mLoadingIndicator.setVisibility(View.INVISIBLE);
+                    mBinding.pbLoadingIndicator.setVisibility(View.INVISIBLE);
                 }
                 if (response.code() == 200) {
                     if (page <= 0) {
                         mMovieSet = response.body();
                         mMovieAdapter.swapMovieList(mMovieSet.getMovies());
-                        mRecyclerView.scrollToPosition(0);
-                        mRecyclerView.setVisibility(View.VISIBLE);
+                        mBinding.recyclerView.scrollToPosition(0);
+                        mBinding.recyclerView.setVisibility(View.VISIBLE);
                     } else {
                         mMovieSet.addMovies(response.body());
                         mMovieAdapter.swapMovieList(mMovieSet.getMovies());
                     }
                 } else {
                     if (page <= 0) {
-                        mStatusIcon.setImageResource(R.drawable.ic_error_outline);
-                        mStatusMessage.setText(R.string.error_unexpected_response);
-                        mRecyclerView.setVisibility(View.INVISIBLE);
-                        mStatusMessage.setVisibility(View.VISIBLE);
-                        mStatusIcon.setVisibility(View.VISIBLE);
+                        mBinding.ivMessageIcon.setImageResource(R.drawable.ic_error_outline);
+                        mBinding.tvMessage.setText(R.string.error_unexpected_response);
+                        mBinding.recyclerView.setVisibility(View.INVISIBLE);
+                        mBinding.tvMessage.setVisibility(View.VISIBLE);
+                        mBinding.ivMessageIcon.setVisibility(View.VISIBLE);
                     } else {
                         Toast.makeText(MainActivity.this, R.string.error_unexpected_response, Toast.LENGTH_LONG).show();
                     }
@@ -181,25 +158,25 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
             }
 
             @Override
-            public void onFailure(Call<MovieSet> call, Throwable t) {
-                if (Utilities.isOnline(getApplicationContext())) {
-                    mStatusIcon.setImageResource(R.drawable.ic_error);
-                    mStatusMessage.setText(R.string.error_problem_connecting);
+            public void onFailure(@NonNull Call<MovieSet> call, @NonNull Throwable t) {
+                if (Utilities.isOnline()) {
+                    mBinding.ivMessageIcon.setImageResource(R.drawable.ic_error);
+                    mBinding.tvMessage.setText(R.string.error_problem_connecting);
                     if (page > 0) {
                         Toast.makeText(MainActivity.this, R.string.error_problem_connecting, Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    mStatusIcon.setImageResource(R.drawable.ic_warning);
-                    mStatusMessage.setText(R.string.error_no_connection);
+                    mBinding.ivMessageIcon.setImageResource(R.drawable.ic_warning);
+                    mBinding.tvMessage.setText(R.string.error_no_connection);
                     if (page > 0) {
                         Toast.makeText(MainActivity.this, R.string.error_no_connection, Toast.LENGTH_LONG).show();
                     }
                 }
                 if (page <= 0) {
-                    mLoadingIndicator.setVisibility(View.INVISIBLE);
-                    mRecyclerView.setVisibility(View.INVISIBLE);
-                    mStatusMessage.setVisibility(View.VISIBLE);
-                    mStatusIcon.setVisibility(View.VISIBLE);
+                    mBinding.pbLoadingIndicator.setVisibility(View.INVISIBLE);
+                    mBinding.recyclerView.setVisibility(View.INVISIBLE);
+                    mBinding.tvMessage.setVisibility(View.VISIBLE);
+                    mBinding.ivMessageIcon.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -209,7 +186,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     protected void onSaveInstanceState(Bundle outState) {
         outState.putParcelable(LAYOUT_MANAGER_STATE_KEY, mLayoutManager.onSaveInstanceState());
         // No need to preserve recycler view movie list for the liked set this way, cause that is managed by ViewModel as LiveData
-        if (mSharedPrefs.getInt("sort_mode", R.id.action_sort_popular) != R.id.action_sort_liked) {
+        if (mSharedPrefs.getInt(SHARED_PREFS_SORT_MODE_KEY, R.id.action_sort_popular) != R.id.action_sort_liked) {
             outState.putSerializable(MOVIE_SET_KEY, mMovieSet);
         }
         super.onSaveInstanceState(outState);
@@ -244,11 +221,11 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (R.id.menu_sort_group == item.getGroupId()
-                && item.getItemId() != mSharedPrefs.getInt("sort_mode", R.id.action_sort_popular)) {
+                && item.getItemId() != mSharedPrefs.getInt(SHARED_PREFS_SORT_MODE_KEY, R.id.action_sort_popular)) {
             item.setChecked(true);
             mSharedPrefs
                     .edit()
-                    .putInt("sort_mode", item.getItemId())
+                    .putInt(SHARED_PREFS_SORT_MODE_KEY, item.getItemId())
                     .commit();
             populateRecycleView();
         }
@@ -259,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     @Override
     public void onClick(Movie movie) {
         Intent detailIntent = new Intent(this, DetailActivity.class);
-        detailIntent.putExtra("movie", movie);
+        detailIntent.putExtra(EXTRA_MOVIE_KEY, movie);
 
         startActivity(detailIntent);
     }
@@ -269,18 +246,40 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.sort, menu);
-        int prevSortMode = mSharedPrefs.getInt("sort_mode", R.id.action_sort_popular);
+        int prevSortMode = mSharedPrefs.getInt(SHARED_PREFS_SORT_MODE_KEY, R.id.action_sort_popular);
         // Fix saved preference in case it's corrupted
         if (null == menu.findItem(prevSortMode)) {
             mSharedPrefs
                     .edit()
-                    .putInt("sort_mode", R.id.action_sort_popular)
+                    .putInt(SHARED_PREFS_SORT_MODE_KEY, R.id.action_sort_popular)
                     .commit();
             prevSortMode = R.id.action_sort_popular;
         }
         menu.findItem(prevSortMode).setChecked(true);
         return true;
     }
+
+    final Observer<List<LikedEntryJsonAndPoster>> likedObserver = new Observer<List<LikedEntryJsonAndPoster>>() {
+        @Override
+        public void onChanged(@Nullable final List<LikedEntryJsonAndPoster> likedJsonAndPosterEntries) {
+            Log.d(TAG, "Updating list of Liked entries from LiveData in the ViewModel");
+            if (likedJsonAndPosterEntries != null) {
+                ArrayList<Movie> movies = new ArrayList<>();
+                Map<Integer, byte[]> posterMap = new HashMap<>();
+                for (LikedEntryJsonAndPoster likedEntry : likedJsonAndPosterEntries) {
+                    Movie movie = new Gson().fromJson(likedEntry.getMovieJson(), Movie.class);
+                    //movie.setBytePoster(likedEntry.getPoster());
+                    movie.setLiked(true);
+                    movies.add(movie);
+                    posterMap.put(movie.getId(), likedEntry.getPoster());
+                }
+                mMovieSet = new MovieSet();
+                mMovieSet.setMovies(movies);
+                mMovieAdapter.swapMovieList(movies);
+                mLikedViewModel.setPosterMap(posterMap);
+            }
+        }
+    };
 
     private void attachLikedViewModelObserver() {
         mLikedViewModel.getLiked().observe(this, likedObserver);

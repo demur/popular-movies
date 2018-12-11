@@ -1,10 +1,10 @@
 package com.udacity.demur.popularmovies;
 
+import android.databinding.DataBindingUtil;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.NavUtils;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.view.ViewPager;
@@ -13,8 +13,6 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,6 +20,7 @@ import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 import com.udacity.demur.popularmovies.database.LikedEntry;
 import com.udacity.demur.popularmovies.database.TMDBLikedDatabase;
+import com.udacity.demur.popularmovies.databinding.ActivityDetailBinding;
 import com.udacity.demur.popularmovies.model.Movie;
 import com.udacity.demur.popularmovies.model.ReviewSet;
 import com.udacity.demur.popularmovies.model.Video;
@@ -36,64 +35,55 @@ public class DetailActivity extends AppCompatActivity {
     private static final String VIDEO_SET_KEY = "video_set";
     private static final String REVIEW_SET_KEY = "review_set";
     private static final String TAG = DetailActivity.class.getSimpleName();
-    ImageButton mFavorite;
     private TMDBLikedDatabase mDb;
     private Movie theMovie;
-    private ImageView ivDetailPoster;
-    private ImageView ivDetailBackdrop;
     private DetailsPagerAdapter mDetailsPagerAdapter;
-    private ViewPager mViewPager;
     private VideoSet mVideoSet;
     private ReviewSet mReviewSet;
+
+    ActivityDetailBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getIntent().hasExtra("movie")) {
+        if (getIntent().hasExtra(MainActivity.EXTRA_MOVIE_KEY)) {
 
             mDb = TMDBLikedDatabase.getInstance(getApplicationContext());
 
-            setContentView(R.layout.activity_detail);
+            mBinding = DataBindingUtil.setContentView(this, R.layout.activity_detail);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
             }
 
-            theMovie = (Movie) getIntent().getSerializableExtra("movie");
-            ivDetailPoster = findViewById(R.id.iv_detail_poster);
-            ivDetailBackdrop = findViewById(R.id.iv_detail_backdrop);
-            TextView tvDetailTitle = findViewById(R.id.tv_detail_title);
-            TextView tvReleaseDate = findViewById(R.id.tv_release_date);
-            TextView tvVoteAverage = findViewById(R.id.tv_vote_average);
-
-            mFavorite = findViewById(R.id.ib_favorite);
+            theMovie = (Movie) getIntent().getSerializableExtra(MainActivity.EXTRA_MOVIE_KEY);
+            mBinding.setMovie(this.theMovie);
 
             // Check if this Activity was started from Liked list
             if (theMovie.isLiked()) {
-                mFavorite.setSelected(true);
-                mFavorite.setContentDescription(getString(R.string.content_description_favorite_filled));
+                mBinding.ibFavorite.setSelected(true);
                 AppExecutors.getInstance().diskIO().execute(new Runnable() {
                     @Override
                     public void run() {
                         final LikedEntry likedEntry = mDb.likedDao().loadLikedById(theMovie.getId());
-                        if (likedEntry.getReviewSetJson() != null) {
+                        if (null != likedEntry.getReviewSetJson()) {
                             mReviewSet = new Gson().fromJson(likedEntry.getReviewSetJson(), ReviewSet.class);
                         }
-                        if (likedEntry.getVideoSetJson() != null) {
+                        if (null != likedEntry.getVideoSetJson()) {
                             mVideoSet = new Gson().fromJson(likedEntry.getVideoSetJson(), VideoSet.class);
                         }
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                if (likedEntry.getPoster() != null) {
-                                    ivDetailPoster.setImageBitmap(BitmapFactory.decodeByteArray(
+                                if (null != likedEntry.getPoster()) {
+                                    mBinding.ivDetailPoster.setImageBitmap(BitmapFactory.decodeByteArray(
                                             likedEntry.getPoster(),
                                             0,
                                             likedEntry.getPoster().length
                                     ));
                                 }
-                                if (likedEntry.getBackdrop() != null) {
-                                    ivDetailBackdrop.setImageBitmap(BitmapFactory.decodeByteArray(
+                                if (null != likedEntry.getBackdrop()) {
+                                    mBinding.ivDetailBackdrop.setImageBitmap(BitmapFactory.decodeByteArray(
                                             likedEntry.getBackdrop(),
                                             0,
                                             likedEntry.getBackdrop().length
@@ -104,10 +94,10 @@ public class DetailActivity extends AppCompatActivity {
                     }
                 });
             } else {
-                Picasso.get().load("http://image.tmdb.org/t/p/w185/" + theMovie.getPoster_path())
-                        .fit().into(ivDetailPoster);
-                Picasso.get().load("http://image.tmdb.org/t/p/w780/" + theMovie.getBackdrop_path())
-                        .into(ivDetailBackdrop);
+                Picasso.get().load(getString(R.string.tmdb_path_poster) + theMovie.getPoster_path())
+                        .fit().into(mBinding.ivDetailPoster);
+                Picasso.get().load(getString(R.string.tmdb_path_backdrop) + theMovie.getBackdrop_path())
+                        .into(mBinding.ivDetailBackdrop);
                 // This Activity was not started from Liked list, but lets check if the movie is liked
                 AppExecutors.getInstance().diskIO().execute(new Runnable() {
                     @Override
@@ -117,29 +107,16 @@ public class DetailActivity extends AppCompatActivity {
                             @Override
                             public void run() {
                                 if (likedEntries.size() > 0) {
-                                    mFavorite.setSelected(true);
-                                    mFavorite.setContentDescription(getString(R.string.content_description_favorite_filled));
+                                    mBinding.ibFavorite.setSelected(true);
                                 }
                             }
                         });
                     }
                 });
             }
-            tvDetailTitle.setText(theMovie.getTitle());
-            ivDetailPoster.setContentDescription(getString(R.string.content_description_poster, theMovie.getTitle()));
-            ivDetailBackdrop.setContentDescription(getString(R.string.content_description_backdrop_shot, theMovie.getTitle()));
-            if (null != tvReleaseDate) {
-                tvReleaseDate.setText(theMovie.getRelease_date());
-            }
-            if (null != tvVoteAverage) {
-                tvVoteAverage.setText(getString(R.string.vote_average, String.valueOf(theMovie.getVote_average())));
-            }
+            setupViewPager(mBinding.vpContainer);
 
-            mViewPager = findViewById(R.id.vp_container);
-            setupViewPager(mViewPager);
-
-            TabLayout tabLayout = findViewById(R.id.tabs);
-            tabLayout.setupWithViewPager(mViewPager);
+            mBinding.tabs.setupWithViewPager(mBinding.vpContainer);
         } else {
             Toast toast = Toast.makeText(getApplicationContext(), R.string.error_no_data_for_detail_activity, Toast.LENGTH_LONG);
             TextView v = toast.getView().findViewById(android.R.id.message);
@@ -150,22 +127,22 @@ public class DetailActivity extends AppCompatActivity {
     }
 
     public void ibFavoriteClickHandler(View target) {
-        if (!mFavorite.isSelected()) {
+        if (!mBinding.ibFavorite.isSelected()) {
             final LikedEntry likedEntry = new LikedEntry(
                     theMovie.getId(),
                     theMovie.getTitle(),
                     theMovie.getVote_average(),
-                    ivDetailPoster.getDrawable() != null
-                            ? Utilities.getBitmapAsByteArray(((BitmapDrawable) ivDetailPoster.getDrawable()).getBitmap())
+                    null != mBinding.ivDetailPoster.getDrawable()
+                            ? Utilities.getBitmapAsByteArray(((BitmapDrawable) mBinding.ivDetailPoster.getDrawable()).getBitmap())
                             : null,
-                    ivDetailBackdrop.getDrawable() != null
-                            ? Utilities.getBitmapAsByteArray(((BitmapDrawable) ivDetailBackdrop.getDrawable()).getBitmap())
+                    null != mBinding.ivDetailBackdrop.getDrawable()
+                            ? Utilities.getBitmapAsByteArray(((BitmapDrawable) mBinding.ivDetailBackdrop.getDrawable()).getBitmap())
                             : null,
                     new Gson().toJson(theMovie),
-                    mVideoSet != null
+                    null != mVideoSet
                             ? new Gson().toJson(mVideoSet)
                             : null,
-                    mReviewSet != null
+                    null != mReviewSet
                             ? new Gson().toJson(mReviewSet)
                             : null
             );
@@ -176,7 +153,6 @@ public class DetailActivity extends AppCompatActivity {
                 }
             });
             theMovie.setLiked(true);
-            mFavorite.setContentDescription(getString(R.string.content_description_favorite_filled));
         } else {
             final int id = theMovie.getId();
             AppExecutors.getInstance().diskIO().execute(new Runnable() {
@@ -186,9 +162,8 @@ public class DetailActivity extends AppCompatActivity {
                 }
             });
             theMovie.setLiked(false);
-            mFavorite.setContentDescription(getString(R.string.content_description_favorite_outlined));
         }
-        mFavorite.setSelected(!mFavorite.isSelected());
+        mBinding.ibFavorite.setSelected(!mBinding.ibFavorite.isSelected());
     }
 
     private void setupViewPager(ViewPager viewPager) {

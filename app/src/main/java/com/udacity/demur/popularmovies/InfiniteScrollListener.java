@@ -2,6 +2,7 @@ package com.udacity.demur.popularmovies;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.OnScrollListener;
@@ -22,12 +23,12 @@ public abstract class InfiniteScrollListener extends OnScrollListener {
     public InfiniteScrollListener(GridLayoutManager layoutManager, Context context) {
         this.layoutManager = layoutManager;
         itemsBeforeNextLoad *= layoutManager.getSpanCount();
-        mSharedPrefs = context.getSharedPreferences("Settings", MODE_PRIVATE);
+        mSharedPrefs = context.getSharedPreferences(MainActivity.SHARED_PREFS_NAME, MODE_PRIVATE);
     }
 
     @Override
-    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
-        int immediateSortMode = mSharedPrefs.getInt("sort_mode", R.id.action_sort_popular);
+    public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+        int immediateSortMode = mSharedPrefs.getInt(MainActivity.SHARED_PREFS_SORT_MODE_KEY, R.id.action_sort_popular);
         // Checking if type of content in RecyclerView has changed
         if (formerSortMode != immediateSortMode) {
             if (isLoading) {

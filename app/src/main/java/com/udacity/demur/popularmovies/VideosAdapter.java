@@ -1,16 +1,16 @@
 package com.udacity.demur.popularmovies;
 
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import com.udacity.demur.popularmovies.databinding.VideoRvItemBinding;
 import com.udacity.demur.popularmovies.model.Video;
 
 import java.util.List;
@@ -27,36 +27,35 @@ class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideosAdapterView
     @NonNull
     @Override
     public VideosAdapterViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.video_rv_item, parent, false);
-        view.setFocusable(true);
-        return new VideosAdapterViewHolder(view);
+        VideoRvItemBinding itemBinding = DataBindingUtil.inflate(LayoutInflater.from(mContext), R.layout.video_rv_item, parent, false);
+        itemBinding.getRoot().setFocusable(true);
+        return new VideosAdapterViewHolder(itemBinding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull final VideosAdapterViewHolder holder, int position) {
         final Video theVideo = videoList.get(position);
+        holder.bind(theVideo);
 
-        holder.tvVideoName.setText(theVideo.getName());
         if (theVideo.getSite().equalsIgnoreCase("YouTube")) {
             Picasso.get()
                     .load(mContext.getString(R.string.youtube_thumbnail, theVideo.getKey()))
                     .fit()
-                    .into(holder.ivVideoThumbnail, new Callback() {
+                    .into(holder.binding.ivVideoThumbnail, new Callback() {
                         @Override
                         public void onSuccess() {
                         }
 
                         @Override
                         public void onError(Exception e) {
-                            holder.tvVideoName.setVisibility(View.VISIBLE);
-                            holder.ivVideoPlayIcon.setVisibility(View.GONE);
+                            holder.binding.tvVideoName.setVisibility(View.VISIBLE);
+                            holder.binding.ivVideoPlayIcon.setVisibility(View.GONE);
                         }
                     });
         } else {
-            holder.tvVideoName.setVisibility(View.VISIBLE);
-            holder.ivVideoPlayIcon.setVisibility(View.GONE);
+            holder.binding.tvVideoName.setVisibility(View.VISIBLE);
+            holder.binding.ivVideoPlayIcon.setVisibility(View.GONE);
         }
-        holder.ivVideoThumbnail.setContentDescription(theVideo.getName() + " " + theVideo.getType());
     }
 
     @Override
@@ -84,17 +83,17 @@ class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideosAdapterView
     }
 
     class VideosAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        final TextView tvVideoName;
-        final ImageView ivVideoThumbnail;
-        final ImageView ivVideoPlayIcon;
+        private final VideoRvItemBinding binding;
 
-        VideosAdapterViewHolder(View itemView) {
-            super(itemView);
+        VideosAdapterViewHolder(VideoRvItemBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+            this.binding.getRoot().setOnClickListener(this);
+        }
 
-            tvVideoName = itemView.findViewById(R.id.tv_video_name);
-            ivVideoThumbnail = itemView.findViewById(R.id.iv_video_thumbnail);
-            ivVideoPlayIcon = itemView.findViewById(R.id.iv_video_play_icon);
-            itemView.setOnClickListener(this);
+        void bind(Video video) {
+            binding.setVideo(video);
+            binding.executePendingBindings();
         }
 
         @Override

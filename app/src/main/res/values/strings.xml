@@ -1,28 +1,39 @@
 <resources>
+    <!-- Titles -->
     <string name="app_name">Popular Movies</string>
     <string name="title_detail_activity">Movie Details</string>
+    <!-- Sort Options -->
     <string name="action_sort_popular">Most Popular</string>
     <string name="action_sort_top_rated">Top Rated</string>
+    <string name="action_sort_liked">Liked</string>
+    <!-- Data Labels -->
     <string name="release_date_label">Release Date:</string>
     <string name="user_rating_label">User Rating:</string>
     <string name="overview_label">Overview:</string>
+    <!-- Errors -->
     <string name="error_unexpected_response">Unexpected response from the TMDb server</string>
     <string name="error_problem_connecting">Problem connecting to the TMDb server</string>
     <string name="error_no_connection">No network detected, check Your connection</string>
+    <string name="error_no_data_for_detail_activity">Damn!\nApp was unable to retrieve data to display</string>
+    <!-- Content Descriptions-->
     <string name="content_description_poster">"%1$s" movie poster</string>
     <string name="content_description_backdrop_shot">"%1$s" movie backdrop shot</string>
-    <string name="vote_average" translatable="false">%1$s/10</string>
-    <string name="error_no_data_for_detail_activity">Damn!\nApp was unable to retrieve data to display</string>
-    <string name="action_sort_liked">Liked</string>
-    <string name="youtube_thumbnail" translatable="false">https://img.youtube.com/vi/%1$s/0.jpg</string>
-    <string name="youtube_link" translatable="false">https://www.youtube.com/watch?v=%1$s</string>
-    <string name="action_share">Share</string>
-    <string name="nothing_to_share">Unfortunately there is nothing to share at the moment ;-(</string>
-    <string name="share_youtube_link_choose_title">Share YouTube link…</string>
     <string name="content_description_favorite_outlined">Heart outlined shape button. Press to like this movie</string>
     <string name="content_description_favorite_filled">Heart filled shape button. This movie is liked. Press to unlike it</string>
+    <!-- Data formatting -->
+    <string name="vote_average" translatable="false">%1$s/10</string>
     <string name="first_line_indent" translatable="false">\t\t%1$s</string>
+    <!-- Sharing -->
+    <string name="action_share">Share</string>
+    <string name="share_youtube_link_choose_title">Share YouTube link…</string>
+    <string name="nothing_to_share">Unfortunately there is nothing to share at the moment ;-(</string>
+    <string name="youtube_thumbnail" translatable="false">https://img.youtube.com/vi/%1$s/0.jpg</string>
+    <string name="youtube_link" translatable="false">https://www.youtube.com/watch?v=%1$s</string>
+    <!-- Tab titles -->
     <string name="tab_title_overview">Overview</string>
     <string name="tab_title_videos">Videos</string>
     <string name="tab_title_reviews">Reviews</string>
+    <!-- TMDB paths -->
+    <string name="tmdb_path_poster" translatable="false">http://image.tmdb.org/t/p/w185/</string>
+    <string name="tmdb_path_backdrop" translatable="false">http://image.tmdb.org/t/p/w780/</string>
 </resources>

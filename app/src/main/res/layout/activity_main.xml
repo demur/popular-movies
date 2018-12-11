@@ -1,28 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".MainActivity">
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        style="@style/RecyclerView" />
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <ProgressBar
-        android:id="@+id/pb_loading_indicator"
-        style="@style/LoadingIndicator" />
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            style="@style/RecyclerView" />
 
-    <ImageView
-        android:id="@+id/iv_message_icon"
-        style="@style/MessageIcon" />
+        <ProgressBar
+            android:id="@+id/pb_loading_indicator"
+            style="@style/LoadingIndicator" />
 
-    <TextView
-        android:id="@+id/tv_message"
-        style="@style/ErrorMessage"
-        app:layout_constraintEnd_toEndOf="@id/iv_message_icon"
-        app:layout_constraintLeft_toLeftOf="@id/iv_message_icon"
-        app:layout_constraintRight_toRightOf="@id/iv_message_icon"
-        app:layout_constraintStart_toStartOf="@id/iv_message_icon"
-        app:layout_constraintTop_toBottomOf="@id/iv_message_icon" />
+        <ImageView
+            android:contentDescription="@null"
+            android:id="@+id/iv_message_icon"
+            style="@style/MessageIcon" />
 
-</android.support.constraint.ConstraintLayout>
+        <TextView
+            android:id="@+id/tv_message"
+            style="@style/ErrorMessage"
+            app:layout_constraintEnd_toEndOf="@id/iv_message_icon"
+            app:layout_constraintLeft_toLeftOf="@id/iv_message_icon"
+            app:layout_constraintRight_toRightOf="@id/iv_message_icon"
+            app:layout_constraintStart_toStartOf="@id/iv_message_icon"
+            app:layout_constraintTop_toBottomOf="@id/iv_message_icon" />
+
+    </android.support.constraint.ConstraintLayout>
+</layout>

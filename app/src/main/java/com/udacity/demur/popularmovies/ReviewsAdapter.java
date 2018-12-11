@@ -1,13 +1,13 @@
 package com.udacity.demur.popularmovies;
 
 import android.content.Context;
+import android.databinding.DataBindingUtil;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
+import com.udacity.demur.popularmovies.databinding.ReviewRvItemBinding;
 import com.udacity.demur.popularmovies.model.Review;
 
 import java.util.List;
@@ -23,17 +23,15 @@ class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewsAdapterV
     @NonNull
     @Override
     public ReviewsAdapterViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.review_rv_item, parent, false);
-        view.setFocusable(true);
-        return new ReviewsAdapterViewHolder(view);
+        ReviewRvItemBinding itemBinding = DataBindingUtil.inflate(LayoutInflater.from(mContext), R.layout.review_rv_item, parent, false);
+        itemBinding.getRoot().setFocusable(true);
+        return new ReviewsAdapterViewHolder(itemBinding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull final ReviewsAdapterViewHolder holder, int position) {
         final Review theReview = reviewList.get(position);
-
-        holder.tvAuthor.setText(theReview.getAuthor());
-        holder.tvContent.setText(theReview.getContent());
+        holder.bind(theReview);
     }
 
     @Override
@@ -53,14 +51,16 @@ class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewsAdapterV
     }
 
     class ReviewsAdapterViewHolder extends RecyclerView.ViewHolder {
-        final TextView tvAuthor;
-        final TextView tvContent;
+        private final ReviewRvItemBinding binding;
 
-        ReviewsAdapterViewHolder(View itemView) {
-            super(itemView);
+        ReviewsAdapterViewHolder(ReviewRvItemBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
 
-            tvAuthor = itemView.findViewById(R.id.tv_author);
-            tvContent = itemView.findViewById(R.id.tv_content);
+        void bind(Review review) {
+            binding.setReview(review);
+            binding.executePendingBindings();
         }
     }
 }
