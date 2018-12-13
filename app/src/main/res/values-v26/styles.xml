@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="MovieOverviewBase">
+        <item name="android:justificationMode">inter_word</item>
+    </style>
+
+    <style name="RecyclerViewReviewContentBase" parent="RecyclerViewReviewTextView">
+        <item name="android:justificationMode">inter_word</item>
+    </style>
+</resources>

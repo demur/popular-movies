@@ -23,8 +23,6 @@
             android:id="@+id/tv_reviews_message"
             style="@style/ErrorMessage"
             app:layout_constraintEnd_toEndOf="@id/iv_reviews_message_icon"
-            app:layout_constraintLeft_toLeftOf="@id/iv_reviews_message_icon"
-            app:layout_constraintRight_toRightOf="@id/iv_reviews_message_icon"
             app:layout_constraintStart_toStartOf="@id/iv_reviews_message_icon"
             app:layout_constraintTop_toBottomOf="@id/iv_reviews_message_icon" />
 

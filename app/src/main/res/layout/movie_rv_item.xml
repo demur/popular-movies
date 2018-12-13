@@ -8,20 +8,14 @@
 
         <TextView
             android:id="@+id/tv_title"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:gravity="center"
-            android:importantForAccessibility="no"
+            style="@style/RecyclerViewMovieTitle"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/iv_poster"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
+            style="@style/RecyclerViewMoviePoster"
             android:contentDescription="@null"
-            app:layout_constraintDimensionRatio="H,2:3"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

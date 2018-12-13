@@ -13,10 +13,12 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.udacity.demur.popularmovies.database.LikedEntry;
 import com.udacity.demur.popularmovies.database.TMDBLikedDatabase;
@@ -48,6 +50,7 @@ public class DetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         if (getIntent().hasExtra(MainActivity.EXTRA_MOVIE_KEY)) {
+            supportPostponeEnterTransition();
 
             mDb = TMDBLikedDatabase.getInstance(getApplicationContext());
 
@@ -89,13 +92,24 @@ public class DetailActivity extends AppCompatActivity {
                                             likedEntry.getBackdrop().length
                                     ));
                                 }
+                                scheduleSupportStartPostponedTransition(mBinding.ivDetailPoster);
                             }
                         });
                     }
                 });
             } else {
                 Picasso.get().load(getString(R.string.tmdb_path_poster) + theMovie.getPoster_path())
-                        .fit().into(mBinding.ivDetailPoster);
+                        .fit().into(mBinding.ivDetailPoster, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        scheduleSupportStartPostponedTransition(mBinding.ivDetailPoster);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        scheduleSupportStartPostponedTransition(mBinding.ivDetailPoster);
+                    }
+                });
                 Picasso.get().load(getString(R.string.tmdb_path_backdrop) + theMovie.getBackdrop_path())
                         .into(mBinding.ivDetailBackdrop);
                 // This Activity was not started from Liked list, but lets check if the movie is liked
@@ -228,6 +242,9 @@ public class DetailActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_share) {
             shareYouTubeLink();
+        } else if (item.getItemId() == android.R.id.home) {
+            supportFinishAfterTransition();
+            return true;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -266,5 +283,16 @@ public class DetailActivity extends AppCompatActivity {
                 }
             });
         }
+    }
+
+    private void scheduleSupportStartPostponedTransition(final View sharedElement) {
+        sharedElement.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                sharedElement.getViewTreeObserver().removeOnPreDrawListener(this);
+                DetailActivity.this.supportStartPostponedEnterTransition();
+                return true;
+            }
+        });
     }
 }

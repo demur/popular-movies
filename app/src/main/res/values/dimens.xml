@@ -8,6 +8,11 @@
     <dimen name="tv_detail_title_text_size">24sp</dimen>
     <dimen name="iv_detail_poster_width">90dp</dimen>
     <dimen name="iv_detail_poster_margin_left">32dp</dimen>
+    <dimen name="iv_detail_rv_poster_height">0dp</dimen>
+    <dimen name="tv_detail_rv_review_margin">8dp</dimen>
+    <dimen name="tv_detail_rv_review_author_padding_bottom">16dp</dimen>
+    <dimen name="tv_detail_rv_video_name_margin">8dp</dimen>
+    <dimen name="iv_detail_rv_video_thumb_height">0dp</dimen>
     <dimen name="labels_margin_top">16dp</dimen>
     <dimen name="labels_text_size">12sp</dimen>
     <dimen name="content_tv_margin_start">8dp</dimen>
@@ -30,7 +35,9 @@
     <dimen name="tabs_background_height">0dp</dimen>
     <dimen name="label_width">@dimen/wrap_content</dimen>
     <dimen name="label_height">@dimen/wrap_content</dimen>
+    <dimen name="label_upper_margin_top">0dp</dimen>
     <dimen name="iv_detail_poster_height">0dp</dimen>
+    <dimen name="rv_tv_title_margin">8dp</dimen>
     <dimen name="iv_detail_poster_elevation">4dp</dimen>
     <dimen name="tv_detail_title_elevation">4dp</dimen>
     <dimen name="iv_detail_backdrop_elevation">2dp</dimen>

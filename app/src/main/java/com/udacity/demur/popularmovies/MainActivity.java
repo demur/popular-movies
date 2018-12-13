@@ -6,10 +6,13 @@ import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.databinding.DataBindingUtil;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityOptionsCompat;
+import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -228,17 +231,27 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                     .putInt(SHARED_PREFS_SORT_MODE_KEY, item.getItemId())
                     .commit();
             populateRecycleView();
+        } else if (item.getItemId() == android.R.id.home) {
+            supportFinishAfterTransition();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public void onClick(Movie movie) {
+    public void onClick(Movie movie, View title, View poster) {
         Intent detailIntent = new Intent(this, DetailActivity.class);
         detailIntent.putExtra(EXTRA_MOVIE_KEY, movie);
 
-        startActivity(detailIntent);
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeBasic();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            title.setVisibility(View.VISIBLE);
+            Pair<View, String> p1 = Pair.create(title, "movie_title");
+            Pair<View, String> p2 = Pair.create(poster, "movie_poster");
+            options = ActivityOptionsCompat.makeSceneTransitionAnimation(MainActivity.this, p1, p2);
+        }
+        startActivity(detailIntent, options.toBundle());
     }
 
     @SuppressLint("ApplySharedPref")

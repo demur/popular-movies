@@ -82,7 +82,7 @@ class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterView
     }
 
     public interface MoviesAdapterOnClickHandler {
-        void onClick(Movie movie);
+        void onClick(Movie movie, View title, View poster);
     }
 
     class MoviesAdapterViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -100,7 +100,7 @@ class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterView
             if (null != mClickHandler) {
                 int position = getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION) {
-                    mClickHandler.onClick(movieList.get(position));
+                    mClickHandler.onClick(movieList.get(position), binding.tvTitle, binding.ivPoster);
                 }
             }
         }

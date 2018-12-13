@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="AppThemeBase" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:windowContentTransitions">true</item>
+        <item name="android:windowEnterTransition">@android:transition/explode</item>
+        <item name="android:windowExitTransition">@android:transition/explode</item>
+        <item name="android:windowSharedElementEnterTransition">@transition/change_image_transform</item>
+        <item name="android:windowSharedElementExitTransition">@transition/change_image_transform</item>
+    </style>
+
+    <style name="DetailMovieTitleBase">
+        <item name="android:transitionName">movie_title</item>
+        <item name="android:elevation">@dimen/tv_detail_title_elevation</item>
+    </style>
+
+    <style name="DetailBackDropBase">
+        <item name="android:elevation">@dimen/iv_detail_backdrop_elevation</item>
+    </style>
+
+    <style name="DetailPosterBase">
+        <item name="android:transitionName">movie_poster</item>
+        <item name="android:elevation">@dimen/iv_detail_poster_elevation</item>
+    </style>
+
+    <style name="TabLayoutBase" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:elevation">@dimen/tabs_elevation</item>
+    </style>
+
+    <style name="TabsBackgroundBase" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:elevation">@dimen/tabs_elevation</item>
+    </style>
+
+    <style name="ViewPagerContainerBase">
+        <item name="android:elevation">@dimen/vp_container_elevation</item>
+    </style>
+
+    <style name="RecyclerViewMovieTitleBase">
+        <item name="android:transitionName">movie_title</item>
+    </style>
+
+    <style name="RecyclerViewMoviePosterBase">
+        <item name="android:transitionName">movie_poster</item>
+    </style>
+</resources>
