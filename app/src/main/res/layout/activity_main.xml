@@ -1,29 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MainActivity">
+<layout>
 
-    <android.support.constraint.ConstraintLayout
+    <data>
+        <import type="android.view.View" />
+        <variable
+            name="rvHelper"
+            type="com.udacity.demur.popularmovies.service.RecyclerViewStateHelper" />
+    </data>
+
+    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recyclerView"
-            style="@style/RecyclerView" />
+        <android.support.v4.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/recyclerView"
+                style="@style/RecyclerView"
+                android:visibility="@{rvHelper.loadingState||rvHelper.errorState ? View.INVISIBLE : View.VISIBLE}" />
+        </android.support.v4.widget.SwipeRefreshLayout>
 
         <ProgressBar
             android:id="@+id/pb_loading_indicator"
-            style="@style/LoadingIndicator" />
+            style="@style/LoadingIndicator"
+            android:visibility="@{rvHelper.loadingState ? View.VISIBLE : View.INVISIBLE}" />
 
         <ImageView
             android:id="@+id/iv_message_icon"
             style="@style/MessageIcon"
-            android:contentDescription="@null" />
+            android:contentDescription="@null"
+            android:visibility="@{rvHelper.errorState ? View.VISIBLE : View.INVISIBLE}" />
 
         <TextView
             android:id="@+id/tv_message"
             style="@style/ErrorMessage"
+            android:visibility="@{rvHelper.errorState ? View.VISIBLE : View.INVISIBLE}"
             app:layout_constraintEnd_toEndOf="@id/iv_message_icon"
             app:layout_constraintStart_toStartOf="@id/iv_message_icon"
             app:layout_constraintTop_toBottomOf="@id/iv_message_icon" />

@@ -1,4 +1,4 @@
-package com.udacity.demur.popularmovies;
+package com.udacity.demur.popularmovies.adapter;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
@@ -10,17 +10,18 @@ import android.view.ViewGroup;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
+import com.udacity.demur.popularmovies.R;
 import com.udacity.demur.popularmovies.databinding.VideoRvItemBinding;
 import com.udacity.demur.popularmovies.model.Video;
 
 import java.util.List;
 
-class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideosAdapterViewHolder> {
+public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideosAdapterViewHolder> {
     private final Context mContext;
     private List<Video> videoList;
     private OnVideoClicked onClick;
 
-    VideosAdapter(@NonNull Context context) {
+    public VideosAdapter(@NonNull Context context) {
         this.mContext = context;
     }
 
@@ -69,7 +70,7 @@ class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideosAdapterView
         return position;
     }
 
-    void swapVideoList(List<Video> videoList) {
+    public void swapVideoList(List<Video> videoList) {
         this.videoList = videoList;
         notifyDataSetChanged();
     }

@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.util.Pair;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -24,12 +25,15 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.udacity.demur.popularmovies.adapter.MoviesAdapter;
 import com.udacity.demur.popularmovies.database.LikedEntryJsonAndPoster;
 import com.udacity.demur.popularmovies.databinding.ActivityMainBinding;
 import com.udacity.demur.popularmovies.model.Movie;
 import com.udacity.demur.popularmovies.model.MovieSet;
+import com.udacity.demur.popularmovies.service.RecyclerViewStateHelper;
 import com.udacity.demur.popularmovies.service.RetrofitClient;
 import com.udacity.demur.popularmovies.service.TMDbClient;
+import com.udacity.demur.popularmovies.viewmodel.LikedViewModel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -58,11 +62,13 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     private TMDbClient mClient;
     private static int mGridSpanCount = 3;
     private LikedViewModel mLikedViewModel;
+    private RecyclerViewStateHelper rvHelper = new RecyclerViewStateHelper();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        mBinding.setRvHelper(rvHelper);
 
         mSharedPrefs = getApplicationContext().getSharedPreferences(SHARED_PREFS_NAME, MODE_PRIVATE);
 
@@ -95,12 +101,25 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
         if (null != mMovieSet || (null != savedInstanceState
                 && savedInstanceState.containsKey(MOVIE_SET_KEY)
                 && null != savedInstanceState.getSerializable(MOVIE_SET_KEY))) {
-            if (null == mMovieSet)
+            if (null == mMovieSet) {
                 mMovieSet = (MovieSet) savedInstanceState.getSerializable(MOVIE_SET_KEY);
-            mMovieAdapter.swapMovieList(mMovieSet.getMovies());
+            }
+            if (null != mMovieSet && null != mMovieSet.getMovies()) {
+                mMovieAdapter.swapMovieList(mMovieSet.getMovies());
+            } else {
+                mMovieAdapter.swapMovieList(null);
+            }
         } else {
             populateRecycleView();
         }
+        mBinding.swipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                mBinding.swipeRefresh.setRefreshing(false);
+                populateRecycleView();
+            }
+        });
+        mBinding.swipeRefresh.setColorSchemeResources(R.color.colorAccent);
     }
 
     public void populateRecycleView() {
@@ -126,34 +145,33 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
     // TMDB call with defined page number
     public void requestTMDB(Call<MovieSet> call, final int page) {
         if (page <= 0) {
-            mBinding.tvMessage.setVisibility(View.INVISIBLE);
-            mBinding.ivMessageIcon.setVisibility(View.INVISIBLE);
-            mBinding.pbLoadingIndicator.setVisibility(View.VISIBLE);
-            mBinding.recyclerView.setVisibility(View.INVISIBLE);
+            rvHelper.setLoadingState(true);
+            rvHelper.setErrorState(false);
         }
         call.enqueue(new Callback<MovieSet>() {
             @Override
             public void onResponse(@NonNull Call<MovieSet> call, @NonNull retrofit2.Response<MovieSet> response) {
                 if (page <= 0) {
-                    mBinding.pbLoadingIndicator.setVisibility(View.INVISIBLE);
+                    rvHelper.setLoadingState(false);
                 }
                 if (response.code() == 200) {
                     if (page <= 0) {
                         mMovieSet = response.body();
-                        mMovieAdapter.swapMovieList(mMovieSet.getMovies());
-                        mBinding.recyclerView.scrollToPosition(0);
-                        mBinding.recyclerView.setVisibility(View.VISIBLE);
                     } else {
                         mMovieSet.addMovies(response.body());
-                        mMovieAdapter.swapMovieList(mMovieSet.getMovies());
+                    }
+                    mMovieAdapter.swapMovieList(
+                            null != mMovieSet && null != mMovieSet.getMovies()
+                                    ? mMovieSet.getMovies()
+                                    : null);
+                    if (page <= 0) {
+                        mBinding.recyclerView.scrollToPosition(0);
                     }
                 } else {
                     if (page <= 0) {
                         mBinding.ivMessageIcon.setImageResource(R.drawable.ic_error_outline);
                         mBinding.tvMessage.setText(R.string.error_unexpected_response);
-                        mBinding.recyclerView.setVisibility(View.INVISIBLE);
-                        mBinding.tvMessage.setVisibility(View.VISIBLE);
-                        mBinding.ivMessageIcon.setVisibility(View.VISIBLE);
+                        rvHelper.setErrorState(true);
                     } else {
                         Toast.makeText(MainActivity.this, R.string.error_unexpected_response, Toast.LENGTH_LONG).show();
                     }
@@ -176,10 +194,8 @@ public class MainActivity extends AppCompatActivity implements MoviesAdapter.Mov
                     }
                 }
                 if (page <= 0) {
-                    mBinding.pbLoadingIndicator.setVisibility(View.INVISIBLE);
-                    mBinding.recyclerView.setVisibility(View.INVISIBLE);
-                    mBinding.tvMessage.setVisibility(View.VISIBLE);
-                    mBinding.ivMessageIcon.setVisibility(View.VISIBLE);
+                    rvHelper.setLoadingState(false);
+                    rvHelper.setErrorState(true);
                 }
             }
         });

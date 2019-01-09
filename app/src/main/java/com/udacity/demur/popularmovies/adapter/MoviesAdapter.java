@@ -1,4 +1,4 @@
-package com.udacity.demur.popularmovies;
+package com.udacity.demur.popularmovies.adapter;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
@@ -11,21 +11,24 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.squareup.picasso.Picasso;
+import com.udacity.demur.popularmovies.MainActivity;
+import com.udacity.demur.popularmovies.R;
 import com.udacity.demur.popularmovies.database.TMDBLikedDatabase;
 import com.udacity.demur.popularmovies.databinding.MovieRvItemBinding;
 import com.udacity.demur.popularmovies.model.Movie;
+import com.udacity.demur.popularmovies.viewmodel.LikedViewModel;
 
 import java.util.List;
 import java.util.Map;
 
-class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
+public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterViewHolder> {
     private final Context mContext;
     private final MoviesAdapterOnClickHandler mClickHandler;
     private List<Movie> movieList;
     private TMDBLikedDatabase mDb;
     private Map<Integer, byte[]> mPosterMap;
 
-    MoviesAdapter(@NonNull Context context, MoviesAdapterOnClickHandler clickHandler) {
+    public MoviesAdapter(@NonNull Context context, MoviesAdapterOnClickHandler clickHandler) {
         this.mContext = context;
         this.mClickHandler = clickHandler;
         mDb = TMDBLikedDatabase.getInstance(context);
@@ -45,7 +48,7 @@ class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterView
         final Movie theMovie = movieList.get(position);
         if (!theMovie.isLiked()) {
             Picasso.get()
-                    .load(mContext.getString(R.string.tmdb_path_poster) + theMovie.getPoster_path())
+                    .load(mContext.getString(R.string.tmdb_path_poster, theMovie.getPoster_path()))
                     .fit()
                     .into(holder.binding.ivPoster);
         } else {
@@ -75,7 +78,7 @@ class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MoviesAdapterView
         return movieList.get(position).getId();
     }
 
-    void swapMovieList(List<Movie> movieList) {
+    public void swapMovieList(List<Movie> movieList) {
         mPosterMap = null;
         this.movieList = movieList;
         notifyDataSetChanged();

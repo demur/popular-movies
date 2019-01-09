@@ -1,4 +1,4 @@
-package com.udacity.demur.popularmovies;
+package com.udacity.demur.popularmovies.adapter;
 
 import android.content.Context;
 import android.databinding.DataBindingUtil;
@@ -7,16 +7,17 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
+import com.udacity.demur.popularmovies.R;
 import com.udacity.demur.popularmovies.databinding.ReviewRvItemBinding;
 import com.udacity.demur.popularmovies.model.Review;
 
 import java.util.List;
 
-class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewsAdapterViewHolder> {
+public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewsAdapterViewHolder> {
     private final Context mContext;
     private List<Review> reviewList;
 
-    ReviewsAdapter(@NonNull Context context) {
+    public ReviewsAdapter(@NonNull Context context) {
         this.mContext = context;
     }
 
@@ -45,7 +46,7 @@ class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewsAdapterV
         return position;
     }
 
-    void swapReviewList(List<Review> reviewList) {
+    public void swapReviewList(List<Review> reviewList) {
         this.reviewList = reviewList;
         notifyDataSetChanged();
     }

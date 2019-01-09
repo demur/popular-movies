@@ -1,5 +1,6 @@
 package com.udacity.demur.popularmovies;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.databinding.DataBindingUtil;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -27,6 +28,7 @@ import com.udacity.demur.popularmovies.model.Movie;
 import com.udacity.demur.popularmovies.model.ReviewSet;
 import com.udacity.demur.popularmovies.model.Video;
 import com.udacity.demur.popularmovies.model.VideoSet;
+import com.udacity.demur.popularmovies.viewmodel.DetailActivityViewModel;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,18 +38,22 @@ public class DetailActivity extends AppCompatActivity {
     private static final String THE_MOVIE_KEY = "the_movie";
     private static final String VIDEO_SET_KEY = "video_set";
     private static final String REVIEW_SET_KEY = "review_set";
+    private static final String ENTER_ORIENTATION_KEY = "enter_orientation";
     private static final String TAG = DetailActivity.class.getSimpleName();
     private TMDBLikedDatabase mDb;
-    private Movie theMovie;
     private DetailsPagerAdapter mDetailsPagerAdapter;
-    private VideoSet mVideoSet;
-    private ReviewSet mReviewSet;
+    private DetailActivityViewModel viewModel;
+    private Integer enterOrientation = null;
 
     ActivityDetailBinding mBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        viewModel = ViewModelProviders.of(this).get(DetailActivityViewModel.class);
+        if (null == enterOrientation) {
+            enterOrientation = getResources().getConfiguration().orientation;
+        }
 
         if (getIntent().hasExtra(MainActivity.EXTRA_MOVIE_KEY)) {
             supportPostponeEnterTransition();
@@ -59,21 +65,23 @@ public class DetailActivity extends AppCompatActivity {
                 Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
             }
 
-            theMovie = (Movie) getIntent().getSerializableExtra(MainActivity.EXTRA_MOVIE_KEY);
-            mBinding.setMovie(this.theMovie);
+            viewModel.setMovie((Movie) getIntent().getSerializableExtra(MainActivity.EXTRA_MOVIE_KEY));
+            mBinding.setMovie(viewModel.getMovie());
 
             // Check if this Activity was started from Liked list
-            if (theMovie.isLiked()) {
+            if (viewModel.getMovie().isLiked()) {
                 mBinding.ibFavorite.setSelected(true);
                 AppExecutors.getInstance().diskIO().execute(new Runnable() {
                     @Override
                     public void run() {
-                        final LikedEntry likedEntry = mDb.likedDao().loadLikedById(theMovie.getId());
-                        if (null != likedEntry.getReviewSetJson()) {
-                            mReviewSet = new Gson().fromJson(likedEntry.getReviewSetJson(), ReviewSet.class);
+                        final LikedEntry likedEntry = mDb.likedDao().loadLikedById(viewModel.getMovie().getId());
+                        if (null == viewModel.getReviewSet().getValue()
+                                && null != likedEntry.getReviewSetJson()) {
+                            viewModel.setReviewSet(new Gson().fromJson(likedEntry.getReviewSetJson(), ReviewSet.class));
                         }
-                        if (null != likedEntry.getVideoSetJson()) {
-                            mVideoSet = new Gson().fromJson(likedEntry.getVideoSetJson(), VideoSet.class);
+                        if (null == viewModel.getVideoSet().getValue()
+                                && null != likedEntry.getVideoSetJson()) {
+                            viewModel.setVideoSet(new Gson().fromJson(likedEntry.getVideoSetJson(), VideoSet.class));
                         }
                         runOnUiThread(new Runnable() {
                             @Override
@@ -98,7 +106,7 @@ public class DetailActivity extends AppCompatActivity {
                     }
                 });
             } else {
-                Picasso.get().load(getString(R.string.tmdb_path_poster) + theMovie.getPoster_path())
+                Picasso.get().load(getString(R.string.tmdb_path_poster, viewModel.getMovie().getPoster_path()))
                         .fit().into(mBinding.ivDetailPoster, new Callback() {
                     @Override
                     public void onSuccess() {
@@ -110,13 +118,13 @@ public class DetailActivity extends AppCompatActivity {
                         scheduleSupportStartPostponedTransition(mBinding.ivDetailPoster);
                     }
                 });
-                Picasso.get().load(getString(R.string.tmdb_path_backdrop) + theMovie.getBackdrop_path())
+                Picasso.get().load(getString(R.string.tmdb_path_backdrop, viewModel.getMovie().getBackdrop_path()))
                         .into(mBinding.ivDetailBackdrop);
                 // This Activity was not started from Liked list, but lets check if the movie is liked
                 AppExecutors.getInstance().diskIO().execute(new Runnable() {
                     @Override
                     public void run() {
-                        final List<LikedEntry> likedEntries = mDb.likedDao().checkLikedById(theMovie.getId());
+                        final List<LikedEntry> likedEntries = mDb.likedDao().checkLikedById(viewModel.getMovie().getId());
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -143,21 +151,21 @@ public class DetailActivity extends AppCompatActivity {
     public void ibFavoriteClickHandler(View target) {
         if (!mBinding.ibFavorite.isSelected()) {
             final LikedEntry likedEntry = new LikedEntry(
-                    theMovie.getId(),
-                    theMovie.getTitle(),
-                    theMovie.getVote_average(),
+                    viewModel.getMovie().getId(),
+                    viewModel.getMovie().getTitle(),
+                    viewModel.getMovie().getVote_average(),
                     null != mBinding.ivDetailPoster.getDrawable()
                             ? Utilities.getBitmapAsByteArray(((BitmapDrawable) mBinding.ivDetailPoster.getDrawable()).getBitmap())
                             : null,
                     null != mBinding.ivDetailBackdrop.getDrawable()
                             ? Utilities.getBitmapAsByteArray(((BitmapDrawable) mBinding.ivDetailBackdrop.getDrawable()).getBitmap())
                             : null,
-                    new Gson().toJson(theMovie),
-                    null != mVideoSet
-                            ? new Gson().toJson(mVideoSet)
+                    new Gson().toJson(viewModel.getMovie()),
+                    null != viewModel.getVideoSet().getValue()
+                            ? new Gson().toJson(viewModel.getVideoSet().getValue())
                             : null,
-                    null != mReviewSet
-                            ? new Gson().toJson(mReviewSet)
+                    null != viewModel.getReviewSet().getValue()
+                            ? new Gson().toJson(viewModel.getReviewSet().getValue())
                             : null
             );
             AppExecutors.getInstance().diskIO().execute(new Runnable() {
@@ -166,16 +174,16 @@ public class DetailActivity extends AppCompatActivity {
                     mDb.likedDao().insertLiked(likedEntry);
                 }
             });
-            theMovie.setLiked(true);
+            viewModel.getMovie().setLiked(true);
         } else {
-            final int id = theMovie.getId();
+            final int id = viewModel.getMovie().getId();
             AppExecutors.getInstance().diskIO().execute(new Runnable() {
                 @Override
                 public void run() {
                     mDb.likedDao().deleteLikedById(id);
                 }
             });
-            theMovie.setLiked(false);
+            viewModel.getMovie().setLiked(false);
         }
         mBinding.ibFavorite.setSelected(!mBinding.ibFavorite.isSelected());
     }
@@ -190,9 +198,10 @@ public class DetailActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putSerializable(THE_MOVIE_KEY, theMovie);
-        outState.putSerializable(REVIEW_SET_KEY, mReviewSet);
-        outState.putSerializable(VIDEO_SET_KEY, mVideoSet);
+        outState.putSerializable(THE_MOVIE_KEY, viewModel.getMovie());
+        outState.putSerializable(REVIEW_SET_KEY, viewModel.getReviewSet().getValue());
+        outState.putSerializable(VIDEO_SET_KEY, viewModel.getVideoSet().getValue());
+        outState.putInt(ENTER_ORIENTATION_KEY, enterOrientation);
         super.onSaveInstanceState(outState);
     }
 
@@ -200,24 +209,30 @@ public class DetailActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         if (null != savedInstanceState) {
-            if (savedInstanceState.containsKey(THE_MOVIE_KEY)
+            if (null == viewModel.getMovie()
+                    && savedInstanceState.containsKey(THE_MOVIE_KEY)
                     && null != savedInstanceState.getSerializable(THE_MOVIE_KEY)) {
-                theMovie = (Movie) savedInstanceState.getSerializable(THE_MOVIE_KEY);
+                viewModel.setMovie((Movie) savedInstanceState.getSerializable(THE_MOVIE_KEY));
             }
-            if (savedInstanceState.containsKey(REVIEW_SET_KEY)
+            if (null == viewModel.getReviewSet().getValue()
+                    && savedInstanceState.containsKey(REVIEW_SET_KEY)
                     && null != savedInstanceState.getSerializable(REVIEW_SET_KEY)) {
-                mReviewSet = (ReviewSet) savedInstanceState.getSerializable(REVIEW_SET_KEY);
+                viewModel.setReviewSet((ReviewSet) savedInstanceState.getSerializable(REVIEW_SET_KEY));
             }
-            if (savedInstanceState.containsKey(VIDEO_SET_KEY)
+            if (null == viewModel.getVideoSet().getValue()
+                    && savedInstanceState.containsKey(VIDEO_SET_KEY)
                     && null != savedInstanceState.getSerializable(VIDEO_SET_KEY)) {
-                mVideoSet = (VideoSet) savedInstanceState.getSerializable(VIDEO_SET_KEY);
+                viewModel.setVideoSet((VideoSet) savedInstanceState.getSerializable(VIDEO_SET_KEY));
+            }
+            if (savedInstanceState.containsKey(ENTER_ORIENTATION_KEY)) {
+                enterOrientation = savedInstanceState.getInt(ENTER_ORIENTATION_KEY);
             }
         }
     }
 
     private void shareYouTubeLink() {
-        if (null != mVideoSet && mVideoSet.getVideos().size() > 0) {
-            for (Video video : mVideoSet.getVideos()) {
+        if (null != viewModel.getVideoSet().getValue() && viewModel.getVideoSet().getValue().getVideos().size() > 0) {
+            for (Video video : viewModel.getVideoSet().getValue().getVideos()) {
                 if (video.getSite().equalsIgnoreCase("YouTube")) {
                     ShareCompat.IntentBuilder.from(this)
                             .setType("text/plain")
@@ -243,46 +258,16 @@ public class DetailActivity extends AppCompatActivity {
         if (item.getItemId() == R.id.action_share) {
             shareYouTubeLink();
         } else if (item.getItemId() == android.R.id.home) {
-            supportFinishAfterTransition();
+            /* Workaround for avoiding malformed shared element transition on return to parent activity
+             *  when orientation of device is different from the one at the time of this activity launch */
+            if (enterOrientation == getResources().getConfiguration().orientation) {
+                supportFinishAfterTransition();
+            } else {
+                finish();
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    public Movie getMovie() {
-        return theMovie;
-    }
-
-    public VideoSet getVideoSet() {
-        return mVideoSet;
-    }
-
-    public void setVideoSet(VideoSet videoSet) {
-        mVideoSet = videoSet;
-        if (theMovie.isLiked()) {
-            AppExecutors.getInstance().diskIO().execute(new Runnable() {
-                @Override
-                public void run() {
-                    mDb.likedDao().updateVideoSetJson(theMovie.getId(), new Gson().toJson(mVideoSet));
-                }
-            });
-        }
-    }
-
-    public ReviewSet getReviewSet() {
-        return mReviewSet;
-    }
-
-    public void setReviewSet(ReviewSet reviewSet) {
-        mReviewSet = reviewSet;
-        if (theMovie.isLiked()) {
-            AppExecutors.getInstance().diskIO().execute(new Runnable() {
-                @Override
-                public void run() {
-                    mDb.likedDao().updateReviewSetJson(theMovie.getId(), new Gson().toJson(mReviewSet));
-                }
-            });
-        }
     }
 
     private void scheduleSupportStartPostponedTransition(final View sharedElement) {

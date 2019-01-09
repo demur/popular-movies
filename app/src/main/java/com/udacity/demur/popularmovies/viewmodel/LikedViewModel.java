@@ -1,4 +1,4 @@
-package com.udacity.demur.popularmovies;
+package com.udacity.demur.popularmovies.viewmodel;
 
 import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
