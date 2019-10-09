@@ -1,7 +1,7 @@
 package com.udacity.demur.popularmovies.service;
 
-import android.databinding.BaseObservable;
-import android.databinding.Bindable;
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
 
 import com.udacity.demur.popularmovies.BR;
 

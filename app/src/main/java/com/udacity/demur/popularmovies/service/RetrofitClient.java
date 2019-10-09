@@ -1,8 +1,9 @@
 package com.udacity.demur.popularmovies.service;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
 import android.util.Log;
+
+import androidx.annotation.NonNull;
 
 import com.udacity.demur.popularmovies.BuildConfig;
 

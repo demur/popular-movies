@@ -1,11 +1,12 @@
 package com.udacity.demur.popularmovies.adapter;
 
 import android.content.Context;
-import android.databinding.DataBindingUtil;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.databinding.DataBindingUtil;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.udacity.demur.popularmovies.R;
 import com.udacity.demur.popularmovies.databinding.ReviewRvItemBinding;
