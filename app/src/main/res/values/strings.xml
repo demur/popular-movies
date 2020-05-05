@@ -34,6 +34,6 @@
     <string name="tab_title_videos">Videos</string>
     <string name="tab_title_reviews">Reviews</string>
     <!-- TMDB paths -->
-    <string name="tmdb_path_poster" translatable="false">http://image.tmdb.org/t/p/w185/%1$s</string>
-    <string name="tmdb_path_backdrop" translatable="false">http://image.tmdb.org/t/p/w780/%1$s</string>
+    <string name="tmdb_path_poster" translatable="false">https://image.tmdb.org/t/p/w185/%1$s</string>
+    <string name="tmdb_path_backdrop" translatable="false">https://image.tmdb.org/t/p/w780/%1$s</string>
 </resources>
